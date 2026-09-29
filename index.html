@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kurote</title>
+<style>
+:root{--bg:#f3e9e4;--fg:#2b1d1d;--l:#b56666;--d:#5a3535;--y:#f0c987;--g:#7fae5a;--hl:#c8f06a;--mut:#7a6060}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1213;--fg:#f1e3df;--mut:#b09a98}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Georgia,'Times New Roman',serif;display:flex;flex-direction:column;align-items:center;padding:16px}
+h1{font-size:2.4rem;margin:0;letter-spacing:.08em}
+.sub{color:var(--mut);margin:0 0 12px;text-align:center;font-style:italic}
+.side{display:flex;gap:12px;width:min(92vw,420px);justify-content:space-between;margin:6px 0}
+.pl{flex:1;padding:8px 10px;border-radius:10px;border:2px solid transparent;font-size:.9rem}
+.pl.on{border-color:var(--fg)}
+.pl b{display:block}
+#board{display:grid;grid-template-columns:repeat(5,1fr);width:min(92vw,420px);aspect-ratio:1;border:4px solid var(--d);border-radius:6px;overflow:hidden;margin:8px 0}
+.c{position:relative;border:0;padding:0;cursor:pointer;background:var(--l)}
+.c.dk{background:var(--d)}
+.c.sel{outline:4px solid #fff;outline-offset:-4px}
+.c.t::after{content:"";position:absolute;inset:8%;border:3px solid var(--hl);border-radius:4px}
+.c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
+.c svg.x{transform:rotate(90deg)}
+#msg,#stat{min-height:3em;text-align:center;width:min(92vw,420px)}
+#stat{min-height:0;color:var(--mut);font-size:.9rem}
+button.a{font:inherit;padding:8px 16px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;margin:4px}
+button.a:disabled{opacity:.35;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+input{font:inherit;padding:8px 12px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);width:9em;text-align:center;letter-spacing:.2em}
+#lobby{display:flex;flex-direction:column;align-items:center;gap:6px;width:min(92vw,420px);text-align:center}
+#lobby p{margin:4px 0;color:var(--mut);font-size:.9rem}
+.hide{display:none!important}
+#game{display:flex;flex-direction:column;align-items:center}
+details{width:min(92vw,420px);margin-top:14px;color:var(--mut);font-size:.9rem}
+</style>
+</head>
+<body>
+<h1>KUROTE</h1>
+<p class="sub">Wizards teleport. Wizards are scary.</p>
+
+<div id="lobby">
+  <div><button class="a" id="create">Create room</button></div>
+  <div>or enter a code: <input id="code" maxlength="12" autocomplete="off" aria-label="Room code"> <button class="a" id="join">Join</button></div>
+  <div><button class="a" id="local">Play on this device</button></div>
+  <p id="lerr"></p>
+  <p>First player in a room is Yellow, the second is Green. Anyone else watches.</p>
+</div>
+
+<div id="game" class="hide">
+  <div id="stat"></div>
+  <div class="side"><div class="pl" id="pY"></div><div class="pl" id="pG"></div></div>
+  <div id="board"></div>
+  <div id="msg"></div>
+  <div><button class="a" id="place">Place a wizard</button><button class="a" id="reset">New game</button><button class="a" id="leave">Leave</button></div>
+</div>
+
+<details><summary>Rules</summary>
+<p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
+
+<script>
+const N=5,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
+let B,X,R,C,turn,sel,placing,over,note,seq=0;
+let ws=null,code='',inRoom=false,role='both',peers={Y:false,G:false,S:0},live=false;
+const $=id=>document.getElementById(id);
+
+function init(){
+  B=Array(25).fill(null);X=Array(25).fill(false);
+  [1,2,3,5,9].forEach(i=>B[i]='Y');[15,19,21,22,23].forEach(i=>B[i]='G');
+  R={Y:2,G:2};C={Y:0,G:0};turn='Y';sel=null;placing=false;over=false;note='';
+  begin();
+}
+const nb=i=>{const r=i/N|0,c=i%N,o=[];for(let a=-1;a<2;a++)for(let b=-1;b<2;b++){if(!a&&!b)continue;const y=r+a,x=c+b;if(y>=0&&y<N&&x>=0&&x<N)o.push(y*N+x)}return o};
+const opp=p=>p=='Y'?'G':'Y';
+const oc=(t,p)=>nb(t).filter(n=>B[n]==opp(p)).length;
+const mine=p=>B.map((v,i)=>v==p?i:-1).filter(i=>i>=0);
+function moves(i){const p=B[i];return B.map((v,t)=>t).filter(t=>!B[t]&&oc(t,p)<3&&nb(t).some(n=>n!=i&&B[n]==p))}
+function places(p){if(mine(p).length>=5||!R[p])return[];const r=p=='Y'?0:4;return[0,1,2,3,4].map(c=>r*N+c).filter(t=>!B[t]&&oc(t,p)<3)}
+function actions(p){return places(p).length||mine(p).some(i=>!X[i]&&moves(i).length)}
+function refresh(){const m=mine(turn);if(m.length&&m.every(i=>X[i])){m.forEach(i=>X[i]=false);return true}return false}
+function begin(){
+  let passed=0;
+  while(!over&&!actions(turn)&&passed<2){
+    if(refresh())continue;
+    note=NAME[turn]+' has no legal action and passes.';turn=opp(turn);passed++;
+  }
+  if(passed>=2){over=true;note='Stalemate: neither side can act. Draw.'}
+  else if(!over&&refresh())note+=' '+NAME[turn]+"'s wizards refresh.";
+}
+function endMove(reset){
+  if(!reset){
+    const p=turn,dead=mine(opp(p)).filter(i=>nb(i).filter(n=>B[n]==p).length>=3);
+    dead.forEach(i=>{B[i]=null;X[i]=false;C[p]++});
+    if(dead.length)note=NAME[p]+' captured '+dead.length+' wizard'+(dead.length>1?'s':'')+'!';
+    sel=null;placing=false;
+    if(C[p]>=3){over=true;note=NAME[p]+' wins with 3 captures!'}
+    else{turn=opp(p);begin()}
+  }
+  seq++;render();push(reset);
+}
+const canAct=()=>!over&&(role=='both'||(role==turn&&live));
+function click(i){
+  if(!canAct())return;
+  if(placing){if(places(turn).includes(i)){B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
+  if(sel!==null&&moves(sel).includes(i)){B[i]=turn;X[i]=true;B[sel]=null;X[sel]=false;note='';endMove();return}
+  if(B[i]==turn&&!X[i]){sel=sel===i?null:i}else sel=null;
+  render();
+}
+function send(m){if(ws&&ws.readyState==1)ws.send(JSON.stringify(m))}
+function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note}})}
+function apply(d,force){
+  const ok=d&&Number.isInteger(d.seq)&&Array.isArray(d.B)&&d.B.length==25&&d.B.every(v=>v===null||v==='Y'||v==='G')&&
+    Array.isArray(d.X)&&d.X.length==25&&d.R&&d.C&&(d.turn=='Y'||d.turn=='G');
+  if(!ok||(!force&&d.seq<=seq))return;
+  seq=d.seq;B=d.B;X=d.X.map(Boolean);R={Y:+d.R.Y||0,G:+d.R.G||0};C={Y:+d.C.Y||0,G:+d.C.G||0};
+  turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;render();
+}
+const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
+function render(){
+  const tg=!canAct()?[]:placing?places(turn):sel!==null?moves(sel):[];
+  const el=$('board');el.innerHTML='';
+  for(let k=0;k<25;k++){
+    const i=role=='Y'?24-k:k,v=B[i],b=document.createElement('button');
+    b.className='c'+(((i/N|0)+i%N)%2?' dk':'')+(sel===i?' sel':'')+(tg.includes(i)?' t':'');
+    b.setAttribute('aria-label','Row '+((i/N|0)+1)+' column '+(i%N+1)+(v?', '+NAME[v]+' wizard'+(X[i]?' exhausted':''):''));
+    if(v)b.innerHTML=meeple(v,X[i]);
+    b.onclick=()=>click(i);el.appendChild(b);
+  }
+  ['Y','G'].forEach(p=>{
+    const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
+    d.innerHTML=`<b>${NAME[p]}${role==p?' (you)':''}</b>Captured ${C[p]}/3<br>Reserve ${R[p]} · On board ${mine(p).length}`;
+  });
+  const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
+  $('reset').disabled=role=='S'||(inRoom&&!live);
+  let m=note?note+' ':'';
+  if(!over){
+    if(inRoom&&!live)m+='Connecting...';
+    else if(role=='S')m+="Watching. It's "+NAME[turn]+"'s turn.";
+    else if(role!='both'&&role!=turn)m+="Waiting for "+NAME[turn]+'...';
+    else m+=(role=='both'?NAME[turn]+"'s turn":'Your turn')+(placing?': pick a tile on your home row.':sel!==null?': choose a highlighted tile.':': select a wizard.');
+  }
+  $('msg').textContent=m;
+  if(inRoom){
+    const you=role=='S'?'watching':'you are '+NAME[role];
+    const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
+    $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
+  }else $('stat').textContent='Local game on this device';
+}
+function connect(){
+  ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
+  ws.onopen=()=>send({t:'join',code});
+  ws.onmessage=e=>{
+    let m;try{m=JSON.parse(e.data)}catch{return}
+    if(m.t=='hello'){
+      role=m.role;peers=m.peers;live=true;
+      if(m.state)apply(m.state);else if(seq>0&&role!='S')push(true);
+      $('lobby').classList.add('hide');$('game').classList.remove('hide');render();
+    }else if(m.t=='state')apply(m.state,m.force);
+    else if(m.t=='peers'){peers=m.peers;render()}
+    else if(m.t=='err'){$('lerr').textContent=m.msg}
+  };
+  ws.onclose=()=>{live=false;if(inRoom){render();setTimeout(()=>{if(inRoom)connect()},1500)}else if($('game').classList.contains('hide'))$('lerr').textContent='Could not reach the server.'};
+}
+function enter(c){
+  c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(c.length<3){$('lerr').textContent='Enter a code of at least 3 letters or digits.';return}
+  $('lerr').textContent='Connecting...';
+  code=c;inRoom=true;role='Y';seq=0;init();connect();
+}
+function leave(){
+  inRoom=false;live=false;if(ws)ws.close();role='both';
+  $('game').classList.add('hide');$('lobby').classList.remove('hide');$('lerr').textContent='';
+}
+$('create').onclick=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];enter(s)};
+$('join').onclick=()=>enter($('code').value);
+$('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value)};
+$('local').onclick=()=>{inRoom=false;role='both';seq=0;init();$('lobby').classList.add('hide');$('game').classList.remove('hide');render()};
+$('place').onclick=()=>{placing=!placing;sel=null;render()};
+$('reset').onclick=()=>{init();endMove(true)};
+$('leave').onclick=leave;
+</script>
+</body>
+</html>
