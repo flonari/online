@@ -154,7 +154,7 @@ function render(){
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Captured ${C[p]}/3<br>Reserve ${R[p]} · On board ${mine(p).length}`;
   });
   const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
-  $('reset').disabled=role=='S'||(inRoom&&!live);
+  $('reset').classList.toggle('hide',role=='G'||role=='S');$('reset').disabled=inRoom&&!live;
   let m=note?note+' ':'';
   if(!over){
     if(inRoom&&!live)m+='Connecting...';
@@ -164,7 +164,7 @@ function render(){
   }
   $('msg').textContent=m;
   if(inRoom){
-    const you=role=='S'?'watching':'you are '+NAME[role];
+    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('stat').textContent='Local game on this device';
@@ -199,7 +199,7 @@ $('join').onclick=()=>enter($('code').value);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value)};
 $('local').onclick=()=>{inRoom=false;role='both';seq=0;init();$('lobby').classList.add('hide');$('game').classList.remove('hide');render()};
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
-$('reset').onclick=()=>{init();endMove(true)};
+$('reset').onclick=()=>{if(role=='G'||role=='S')return;init();endMove(true)};
 $('leave').onclick=leave;
 </script>
 </body>
