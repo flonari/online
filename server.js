@@ -43,7 +43,7 @@ wss.on('connection', ws => {
       bc(r, { t: 'peers', peers: peers(r) }, ws);
     } else if (m.t === 'state' && ws.room && ws.role !== 'S') {
       const r = ws.room, st = m.state;
-      const ok = okState(st) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
+      const ok = okState(st) && (!r.state || (st.seq > r.state.seq && (m.reset === true && ws.role === 'Y')));
       if (ok) { r.state = st; bc(r, { t: 'state', state: st }, ws); }
       else if (r.state) send(ws, { t: 'state', state: r.state, force: true });
     }
