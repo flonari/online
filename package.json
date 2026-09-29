@@ -1,0 +1,8 @@
+{
+  "name": "kurote-online",
+  "version": "1.0.0",
+  "description": "Kurote board game with room-code online multiplayer",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "ws": "^8.18.0" }
+}
