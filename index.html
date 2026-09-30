@@ -32,7 +32,7 @@ h2{font-size:1.1rem;margin:0}
 #bw{position:relative;flex:1;min-width:0;max-width:420px}
 .res{width:26px;display:flex;flex-direction:column;gap:8px;padding:6px 0}
 .ball{display:block;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.65) 0,transparent 45%),var(--bc);border:1.5px solid #2b1d1d;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:opacity .2s}
-.ball.used{background:transparent;border-style:dashed;box-shadow:none;opacity:.35}
+.ball.used{background:#9a9a9a;border-color:#6f6f6f;box-shadow:none;opacity:.45}
 #board{display:grid;grid-template-columns:repeat(5,1fr);width:100%;aspect-ratio:1;border:5px solid var(--d);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
 .c{position:relative;border:0;padding:0;cursor:pointer;background:var(--l)}
 .c.dk{background:var(--d)}
@@ -115,10 +115,9 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
-<h3>v1.03<span>Sep 30, 2026</span></h3>
+<h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a win screen.</li>
 <li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
-<h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a Header Animation.</li></ul>
 <h3>v1.01<span>Sep 30, 2026</span></h3>
 <ul><li>Added these patch notes.</li>
