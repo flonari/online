@@ -8,7 +8,7 @@
 :root{--bg:#f3e9e4;--card:#fbf5f2;--fg:#2b1d1d;--l:#b56666;--d:#5a3535;--y:#f0c987;--g:#7fae5a;--hl:#c8f06a;--mut:#7a6060;--line:#dcc9c3;--shadow:0 4px 14px rgba(60,20,20,.15)}
 @media (prefers-color-scheme:dark){:root{--bg:#1c1213;--card:#2a1c1d;--fg:#f1e3df;--mut:#b09a98;--line:#4a3535;--shadow:0 4px 14px rgba(0,0,0,.4)}}
 *{box-sizing:border-box}
-body{overflow-x:hidden;margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Georgia,'Times New Roman',serif;padding:24px 16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Georgia,'Times New Roman',serif;padding:24px 16px}
 .wrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:16px}
 header{text-align:center}
 h1{font-size:2.6rem;margin:0;letter-spacing:.1em;line-height:1.1}
@@ -21,20 +21,33 @@ h2{font-size:1.1rem;margin:0}
 .or{color:var(--mut);font-size:.85rem}
 .hint{margin:0;color:var(--mut);font-size:.85rem}
 #lerr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
-#game{width:100%;flex-direction:column;align-items:center;gap:10px}
+#game{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
 #stat{align-self:center;padding:3px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;text-align:center}
 .side{display:flex;gap:10px;width:100%}
 .pl{flex:1;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);font-size:.9rem;line-height:1.4;transition:border-color .2s,box-shadow .2s}
 .pl.on{border-color:var(--fg);box-shadow:var(--shadow)}
 .pl b{display:block;font-size:1rem}
 .dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid #2b1d1d;margin-right:6px}
-#board{display:grid;grid-template-columns:repeat(5,1fr);flex:1;min-width:0;max-width:420px;aspect-ratio:1;border:5px solid var(--d);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+#arena{display:flex;align-items:stretch;justify-content:center;gap:8px;width:100%}
+#bw{position:relative;flex:1;min-width:0;max-width:420px}
+.res{width:26px;display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.ball{display:block;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.65) 0,transparent 45%),var(--bc);border:1.5px solid #2b1d1d;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:opacity .2s}
+.ball.used{background:transparent;border-style:dashed;box-shadow:none;opacity:.35}
+#board{display:grid;grid-template-columns:repeat(5,1fr);width:100%;aspect-ratio:1;border:5px solid var(--d);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
 .c{position:relative;border:0;padding:0;cursor:pointer;background:var(--l)}
 .c.dk{background:var(--d)}
 .c.sel{outline:4px solid #fff;outline-offset:-4px}
 .c.t::after{content:"";position:absolute;inset:8%;border:3px solid var(--hl);border-radius:4px}
 .c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
 .c svg.x{transform:rotate(90deg)}
+#win{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
+.wc{background:var(--card);color:var(--fg);border:3px solid var(--wcol,var(--line));border-radius:16px;padding:20px 22px;text-align:center;box-shadow:0 0 0 4px rgba(255,255,255,.08),0 10px 30px rgba(0,0,0,.45);animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+.trophy{font-size:3rem;line-height:1;animation:bob 1.6s ease-in-out infinite}
+#wt{font-size:1.7rem;margin:6px 0 2px}
+#ws{margin:0 0 12px;color:var(--mut);font-size:.95rem}
+#wwait{margin:0 0 10px;color:var(--mut);font-size:.85rem}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-4deg)}}
 #msg{min-height:3em;text-align:center;font-size:1.05rem}
 .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 button.a{font:inherit;padding:8px 16px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s}
@@ -54,26 +67,7 @@ details p{margin:8px 0 0}
 details.patch[open] summary{margin-bottom:0}
 h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-delay:calc(var(--i)*-.14s)}
 @keyframes wave{0%{transform:translateY(0)}12.5%{transform:translateY(-1px)}25%{transform:translateY(-2px)}37.5%{transform:translateY(-1px)}50%{transform:translateY(0)}62.5%{transform:translateY(1px)}75%{transform:translateY(2px)}87.5%{transform:translateY(1px)}}
-@media (prefers-reduced-motion:reduce){h1 .ch{animation:none}}
-.bwrap{display:flex;gap:10px;width:100%;align-items:center;justify-content:center}
-.res{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;width:24px}
-.ball{display:block;width:20px;height:20px;border-radius:50%;border:2px solid #2b1d1d;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55) 0,transparent 40%),var(--c)}
-.ball.off{background:none;border:2px dashed var(--line);opacity:.7}
-#win{width:100%;padding:14px 16px;border-radius:12px;border:3px solid #2b1d1d;text-align:center;color:#2b1d1d;box-shadow:var(--shadow);animation:pop .4s ease-out}
-#win b{display:block;font-size:1.7rem;letter-spacing:.06em;line-height:1.2}
-#win span{font-size:.9rem;opacity:.85}
-#win.Y{background:linear-gradient(135deg,#f9e3b8,var(--y))}
-#win.G{background:linear-gradient(135deg,#b4d99a,var(--g))}
-#win.D{background:var(--card);color:var(--fg);border-color:var(--line)}
-@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){#win{animation:none}}
-.pwrap{position:relative;width:100%}
-.secret{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;cursor:pointer;font-size:2rem}
-.secret img{display:block;max-width:100%;max-height:100%}
-details.patch{position:relative;z-index:1}
-details.patch.snap{transition:transform .25s}
-.grip{position:absolute;right:0;bottom:0;width:30px;height:30px;cursor:grab;touch-action:none;border-bottom-right-radius:14px;background:linear-gradient(135deg,transparent 50%,var(--line) 50%)}
-.grip:active{cursor:grabbing}
+@media (prefers-reduced-motion:reduce){h1 .ch,.wc,.trophy{animation:none}}
 </style>
 </head>
 <body>
@@ -98,20 +92,32 @@ details.patch.snap{transition:transform .25s}
 <section id="game" class="hide">
   <div id="stat" role="status"></div>
   <div class="side"><div class="pl" id="pY"></div><div class="pl" id="pG"></div></div>
-  <div class="bwrap"><div class="res" id="rY" role="img"></div><div id="board"></div><div class="res" id="rG" role="img"></div></div>
-  <div id="win" class="hide" role="status"></div>
+  <div id="arena">
+    <div class="res" id="rY"></div>
+    <div id="bw">
+      <div id="board"></div>
+      <div id="win" class="hide" role="alertdialog" aria-live="polite">
+        <div class="wc" id="wc">
+          <div class="trophy" id="wi"></div>
+          <h2 id="wt"></h2>
+          <p id="ws"></p>
+          <p id="wwait" class="hide">Waiting for the host to start a new game.</p>
+          <div class="row"><button class="a primary" id="wnew">New game</button><button class="a" id="wview">View board</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="res" id="rG"></div>
+  </div>
   <div id="msg" role="status"></div>
   <div class="controls"><button class="a" id="place">Place a wizard</button><button class="a" id="reset">New game</button><button class="a" id="leave">Leave</button></div>
 </section>
 
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
-<div id="patch" class="pwrap">
-<button class="secret hide" id="secret" aria-label="Secret"><img id="cat" src="cat.png" alt=""></button>
-<details class="card patch" id="patchcard"><summary>Patch notes</summary><div class="grip" id="grip" title="Drag to pull away"></div>
+<details class="card patch" id="patch"><summary>Patch notes</summary>
 <h3>v1.03<span>Sep 30, 2026</span></h3>
-<ul><li>Improved the win message.</li>
-<li>Reserve wizards are now shown as balls beside the board.</li></ul>
+<ul><li>Added a win screen.</li>
+<li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
 <h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a Header Animation.</li></ul>
 <h3>v1.01<span>Sep 30, 2026</span></h3>
@@ -120,19 +126,19 @@ details.patch.snap{transition:transform .25s}
 <li>Patch notes are hidden while in a game.</li></ul>
 <h3>v1.0<span>Sep 29, 2026</span></h3>
 <ul><li>initial release</li></ul>
-</details></div>
+</details>
 </main>
 
 <script>
-const N=5,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
-let B,X,R,C,turn,sel,placing,over,note,seq=0;
+const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
+let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,role='both',peers={Y:false,G:false,S:0},live=false;
 const $=id=>document.getElementById(id);
 
 function init(){
   B=Array(25).fill(null);X=Array(25).fill(false);
   [1,2,3,5,9].forEach(i=>B[i]='Y');[15,19,21,22,23].forEach(i=>B[i]='G');
-  R={Y:2,G:2};C={Y:0,G:0};turn='Y';sel=null;placing=false;over=false;note='';
+  R={Y:2,G:2};C={Y:0,G:0};turn='Y';sel=null;placing=false;over=false;note='';dismissed=false;
   begin();
 }
 const nb=i=>{const r=i/N|0,c=i%N,o=[];for(let a=-1;a<2;a++)for(let b=-1;b<2;b++){if(!a&&!b)continue;const y=r+a,x=c+b;if(y>=0&&y<N&&x>=0&&x<N)o.push(y*N+x)}return o};
@@ -193,22 +199,37 @@ function render(){
   }
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Captured ${C[p]}/3<br>Reserve ${R[p]} · On board ${mine(p).length}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Captured ${C[p]}/3<br>On board ${mine(p).length}`;
+    // reserve balls: sit on each player's home side of the board
+    const r=$('r'+p);r.innerHTML='';
+    r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
+    r.style.justifyContent=((p=='Y')==(role!='Y'))?'flex-start':'flex-end';
+    for(let k=0;k<RES;k++){const s=document.createElement('i');s.className='ball'+(k<R[p]?'':' used');s.style.setProperty('--bc',COL[p]);r.appendChild(s)}
   });
   const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
-  $('reset').classList.toggle('hide',role=='G'||role=='S');$('reset').disabled=inRoom&&!live;
-  let m=over?'':(note?note+' ':'');
-  if(!over){
+  const host=role=='both'||role=='Y';
+  $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;
+  if(!over)dismissed=false;
+  const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
+  if(showWin){
+    const w=C.Y>=3?'Y':C.G>=3?'G':null;
+    $('wc').style.setProperty('--wcol',w?COL[w]:'var(--line)');
+    $('wi').textContent=w?'🏆':'🤝';
+    $('wt').innerHTML=w?`<i class="dot" style="background:${COL[w]}"></i>${w==role?'You win!':NAME[w]+' wins!'}`:"It's a draw!";
+    $('ws').textContent=w?NAME[w]+' captured 3 enemy wizards.':'Stalemate: neither side can act.';
+    $('wnew').classList.toggle('hide',!host);$('wnew').disabled=inRoom&&!live;
+    $('wwait').classList.toggle('hide',host);
+  }
+  let m='';
+  if(over)m='Game over.';
+  else{
+    m=note?note+' ':'';
     if(inRoom&&!live)m+='Connecting...';
     else if(role=='S')m+="Watching. It's "+NAME[turn]+"'s turn.";
     else if(role!='both'&&role!=turn)m+="Waiting for "+NAME[turn]+'...';
     else m+=(role=='both'?NAME[turn]+"'s turn":'Your turn')+(placing?': pick a tile on your home row.':sel!==null?': choose a highlighted tile.':': select a wizard.');
   }
-  $('msg').textContent=m;$('msg').classList.toggle('hide',over);
-  ['Y','G'].forEach(p=>{const r=$('r'+p);r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.innerHTML=[0,1].map(k=>`<i class="ball${k<R[p]?'':' off'}" style="--c:${COL[p]}"></i>`).join('')});
-  const w=over?(C.Y>=3?'Y':C.G>=3?'G':'D'):'',wb=$('win');wb.className=w||'hide';
-  if(w){const again=(role=='both'||role=='Y')?'Press New game to play again.':'Waiting for the host to start a new game.';
-    wb.innerHTML=w=='D'?`<b>Draw</b><span>Neither side can act.<br>${again}</span>`:`<b>${role==w?'You win!':NAME[w]+' wins!'}</b><span>${NAME[w]} captured 3 wizards.<br>${again}</span>`}
+  $('msg').textContent=m;
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
@@ -246,21 +267,10 @@ $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value)};
 $('local').onclick=()=>{inRoom=false;role='both';seq=0;init();$('lobby').classList.add('hide');$('patch').classList.add('hide');$('game').classList.remove('hide');render()};
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=()=>{if(role=='G'||role=='S')return;init();endMove(true)};
+$('wnew').onclick=()=>$('reset').onclick();
+$('wview').onclick=()=>{dismissed=true;render()};
 $('leave').onclick=leave;
 (()=>{const h=$('title');h.textContent='';[...'Kijutsu'].forEach((c,i)=>{const e=document.createElement('span');e.className='ch';e.setAttribute('aria-hidden','true');e.style.setProperty('--i',i);e.textContent=c==' '?'\u00a0':c;h.appendChild(e)})})();
-(()=>{
-  const pc=$('patchcard'),grip=$('grip'),sec=$('secret'),cat=$('cat');
-  let sx=0,sy=0,dx=0,dy=0,drag=false,au=null;
-  const put=()=>{pc.style.transform=dx||dy?`translate(${dx}px,${dy}px) rotate(${Math.max(-8,Math.min(8,dx*.03))}deg)`:''};
-  grip.onpointerdown=e=>{drag=true;sx=e.clientX-dx;sy=e.clientY-dy;grip.setPointerCapture(e.pointerId);pc.classList.remove('snap');e.preventDefault()};
-  grip.onpointermove=e=>{if(drag){dx=e.clientX-sx;dy=e.clientY-sy;put()}};
-  const up=()=>{if(!drag)return;drag=false;if(Math.hypot(dx,dy)<40){dx=dy=0;pc.classList.add('snap');put()}};
-  grip.onpointerup=up;grip.onpointercancel=up;
-  pc.ontoggle=()=>{sec.classList.toggle('hide',!pc.open);if(!pc.open){dx=dy=0;put()}};
-  cat.onload=()=>{if(cat.naturalWidth)cat.style.width=cat.naturalWidth/5+'px'};
-  cat.onerror=()=>{sec.textContent='\u{1F431}'};
-  sec.onclick=()=>{try{au=au||new Audio('secret.ogg');au.currentTime=0;au.play().catch(()=>{})}catch(e){}};
-})();
 </script>
 </body>
 </html>
