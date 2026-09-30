@@ -15,14 +15,17 @@ h1{font-size:2.6rem;margin:0;letter-spacing:.1em;line-height:1.1}
 h2{font-size:1.1rem;margin:0}
 .sub{color:var(--mut);margin:4px 0 0;font-style:italic}
 .card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
-#lobby{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+#lobby,#setup{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
 #lobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
 .row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .or{color:var(--mut);font-size:.85rem}
 .hint{margin:0;color:var(--mut);font-size:.85rem}
-#lerr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
+#lerr,#serr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--fg);padding:0;cursor:pointer}
+.sw[aria-pressed=true]{outline:3px solid var(--hl);outline-offset:2px}
 #game{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
 #stat{align-self:center;padding:3px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;text-align:center}
+#spec{position:fixed;left:12px;bottom:12px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;box-shadow:var(--shadow);z-index:10}
 .side{display:flex;gap:10px;width:100%}
 .pl{flex:1;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);font-size:.9rem;line-height:1.4;transition:border-color .2s,box-shadow .2s}
 .pl.on{border-color:var(--fg);box-shadow:var(--shadow)}
@@ -41,8 +44,9 @@ h2{font-size:1.1rem;margin:0}
 .c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
 .c svg.x{transform:rotate(90deg)}
 #win{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
-.wc{background:var(--card);color:var(--fg);border:2px solid var(--fg);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:var(--shadow)}
-#wt{font-size:1.5rem;margin:0 0 12px}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);z-index:20}
+.wc{background:var(--card);color:var(--fg);border:2px solid var(--fg);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+#wt{font-size:1.5rem;margin:0}
 #msg{min-height:3em;text-align:center;font-size:1.05rem}
 .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 button.a{font:inherit;padding:8px 16px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s}
@@ -69,19 +73,30 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.02</p>
+  <p class="sub">v1.03</p>
 </header>
 
 <section id="lobby" class="card">
   <h2>Play online</h2>
   <div class="row"><button class="a primary" id="create">Create room</button></div>
-  <div class="or">or join with a code</div>
+  <div class="or">or join an existing room with its code</div>
   <div class="row"><input id="code" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="join">Join</button></div>
-  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches.</p>
+  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches. A code only joins a room that already exists.</p>
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
   <p id="lerr" role="status"></p>
+</section>
+
+<section id="setup" class="card hide">
+  <h2>Create a room</h2>
+  <div class="row"><input id="scode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="srand">Random</button></div>
+  <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
+  <h2>Palette</h2>
+  <div class="row" id="spal"></div>
+  <p class="hint">Changes the site and board colors for this round.</p>
+  <p id="serr" role="status"></p>
+  <div class="row"><button class="a primary" id="sstart">Start room</button><button class="a" id="sback">Back</button></div>
 </section>
 
 <section id="game" class="hide">
@@ -107,6 +122,11 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.03<span>Oct 1, 2026</span></h3>
+<ul><li>Spectator count is shown in the bottom left during online games.</li>
+<li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
+<li>Create room menu: pick a custom or random room code and a color palette.</li>
+<li>The host can pick a new palette whenever they start a new game.</li></ul>
 <h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a win screen.</li>
 <li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
@@ -120,12 +140,55 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 </details>
 </main>
 
+<div id="spec" class="hide" role="status"></div>
+
+<div id="ng" class="ov hide" role="dialog" aria-modal="true" aria-label="New game">
+  <div class="wc">
+    <h2>New game</h2>
+    <p class="hint">Pick a palette for the next round.</p>
+    <div class="row" id="npal"></div>
+    <div class="row"><button class="a primary" id="nstart">Start</button><button class="a" id="ncancel">Cancel</button></div>
+  </div>
+</div>
+
 <script>
 const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
-let ws=null,code='',inRoom=false,role='both',peers={Y:false,G:false,S:0},live=false;
+let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
+let curPal='classic',pick='classic';
 const $=id=>document.getElementById(id);
- 
+
+// palettes: [name, bg, card, fg, light tile, dark tile, muted, line, highlight]
+const PK=['--bg','--card','--fg','--l','--d','--mut','--line','--hl'];
+const PALS={
+  classic:['Classic','#f3e9e4','#fbf5f2','#2b1d1d','#b56666','#5a3535','#7a6060','#dcc9c3','#c8f06a'],
+  ocean:['Ocean','#e6f0f5','#f4f9fb','#122a36','#6fa3c0','#2f5f7d','#567486','#c3d8e3','#f6e27a'],
+  forest:['Forest','#e9efe3','#f5f8f1','#1f2a1b','#9bb37a','#4a6332','#657558','#ccd8bf','#f2e56b'],
+  midnight:['Midnight','#12121c','#1c1c2b','#e6e6f5','#55537a','#2b2a45','#9a99bd','#34334f','#9dffd8'],
+  candy:['Candy','#fbeaf2','#fff6fa','#3a1f2d','#e79ab9','#b4567f','#8a5a70','#efcadb','#fff06a'],
+  sunset:['Sunset','#fbeee0','#fff7ee','#3a2214','#e3a06a','#a8502c','#866048','#efd2b8','#b6f26a']
+};
+function applyPal(id){
+  const st=document.documentElement.style,p=PALS[id];
+  PK.forEach((k,i)=>p&&id!='classic'?st.setProperty(k,p[i+1]):st.removeProperty(k));
+}
+function drawPal(el,cur){
+  el.innerHTML='';
+  Object.entries(PALS).forEach(([id,p])=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='sw';b.title=p[0];b.setAttribute('aria-label',p[0]+' palette');
+    b.setAttribute('aria-pressed',id==cur);
+    b.style.background=`linear-gradient(135deg,${p[4]} 50%,${p[5]} 50%)`;
+    b.onclick=()=>{pick=id;applyPal(id);drawPal(el,id)};
+    el.appendChild(b);
+  });
+}
+function view(v){
+  ['lobby','setup','game'].forEach(s=>$(s).classList.toggle('hide',s!=v));
+  $('patch').classList.toggle('hide',v=='game');
+}
+const rand=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];return s};
+
 function init(){
   B=Array(25).fill(null);X=Array(25).fill(false);
   [1,2,3,5,9].forEach(i=>B[i]='Y');[15,19,21,22,23].forEach(i=>B[i]='G');
@@ -169,13 +232,15 @@ function click(i){
   render();
 }
 function send(m){if(ws&&ws.readyState==1)ws.send(JSON.stringify(m))}
-function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note}})}
+function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note,pal:curPal}})}
 function apply(d,force){
   const ok=d&&Number.isInteger(d.seq)&&Array.isArray(d.B)&&d.B.length==25&&d.B.every(v=>v===null||v==='Y'||v==='G')&&
     Array.isArray(d.X)&&d.X.length==25&&d.R&&d.C&&(d.turn=='Y'||d.turn=='G');
   if(!ok||(!force&&d.seq<=seq))return;
   seq=d.seq;B=d.B;X=d.X.map(Boolean);R={Y:+d.R.Y||0,G:+d.R.G||0};C={Y:+d.C.Y||0,G:+d.C.G||0};
-  turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;render();
+  turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;
+  if(typeof d.pal=='string'&&PALS[d.pal]&&d.pal!==curPal){curPal=d.pal;applyPal(curPal)}
+  render();
 }
 const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
 function render(){
@@ -222,42 +287,62 @@ function render(){
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('stat').textContent='Local game on this device';
+  const n=peers.S||0;
+  $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
+}
+function dropWs(){const s=ws;ws=null;if(s)try{s.close()}catch(e){}}
+function fail(msg){
+  const was=creating;
+  dropWs();inRoom=false;live=false;creating=false;
+  $('ng').classList.add('hide');$('spec').classList.add('hide');
+  if(was){view('setup');$('serr').textContent=msg}
+  else{applyPal('classic');curPal='classic';view('lobby');$('lerr').textContent=msg}
 }
 function connect(){
-  ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
-  ws.onopen=()=>send({t:'join',code});
-  ws.onmessage=e=>{
-    let m;try{m=JSON.parse(e.data)}catch{return}
+  const s=ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
+  s.onopen=()=>{if(s===ws)send(creating?{t:'create',code}:{t:'join',code})};
+  s.onmessage=e=>{
+    if(s!==ws)return;
+    let m;try{m=JSON.parse(e.data)}catch(x){return}
     if(m.t=='hello'){
-      role=m.role;peers=m.peers;live=true;
-      if(m.state)apply(m.state);else if(seq>0&&role!='S')push(true);
-      $('lobby').classList.add('hide');$('patch').classList.add('hide');$('game').classList.remove('hide');render();
+      creating=false;role=m.role;peers=m.peers;live=true;
+      if(m.state)apply(m.state);
+      else if(role!='S'&&(role=='Y'||seq>0)){seq=Math.max(seq,1);push(true)}
+      view('game');render();
     }else if(m.t=='state')apply(m.state,m.force);
     else if(m.t=='peers'){peers=m.peers;render()}
-    else if(m.t=='err'){$('lerr').textContent=m.msg}
+    else if(m.t=='err')fail(String(m.msg||'Something went wrong.'));
   };
-  ws.onclose=()=>{live=false;if(inRoom){render();setTimeout(()=>{if(inRoom)connect()},1500)}else if($('game').classList.contains('hide'))$('lerr').textContent='Could not reach the server.'};
+  s.onclose=()=>{
+    if(s!==ws)return;
+    live=false;
+    if(inRoom){
+      if($('game').classList.contains('hide'))(creating?$('serr'):$('lerr')).textContent='Could not reach the server, retrying...';
+      render();setTimeout(()=>{if(inRoom&&s===ws)connect()},1500);
+    }
+  };
 }
-function enter(c){
+function enter(c,create){
   c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(c.length<3){$('lerr').textContent='Enter a code of at least 3 letters or digits.';return}
-  $('lerr').textContent='Connecting...';
-  code=c;inRoom=true;role='Y';seq=0;init();connect();
+  const err=create?$('serr'):$('lerr');
+  if(c.length<3){err.textContent='Enter a code of 3 to 12 letters or digits.';return}
+  err.textContent='Connecting...';
+  dropWs();
+  code=c;creating=!!create;inRoom=true;role='Y';seq=0;peers={Y:false,G:false,S:0};
+  if(create)curPal=pick;
+  init();connect();
 }
 function leave(){
-  inRoom=false;live=false;if(ws)ws.close();role='both';
-  $('game').classList.add('hide');$('lobby').classList.remove('hide');$('patch').classList.remove('hide');$('lerr').textContent='';
+  dropWs();inRoom=false;live=false;creating=false;role='both';
+  applyPal('classic');curPal='classic';
+  $('ng').classList.add('hide');$('spec').classList.add('hide');
+  view('lobby');$('lerr').textContent='';
 }
-$('create').onclick=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];enter(s)};
-$('join').onclick=()=>enter($('code').value);
-$('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value)};
-$('local').onclick=()=>{inRoom=false;role='both';seq=0;init();$('lobby').classList.add('hide');$('patch').classList.add('hide');$('game').classList.remove('hide');render()};
-$('place').onclick=()=>{placing=!placing;sel=null;render()};
-$('reset').onclick=()=>{if(role=='G'||role=='S')return;init();endMove(true)};
-$('wnew').onclick=()=>$('reset').onclick();
-$('wview').onclick=()=>{dismissed=true;render()};
-$('leave').onclick=leave;
-(()=>{const h=$('title');h.textContent='';[...'Kijutsu'].forEach((c,i)=>{const e=document.createElement('span');e.className='ch';e.setAttribute('aria-hidden','true');e.style.setProperty('--i',i);e.textContent=c==' '?'\u00a0':c;h.appendChild(e)})})();
-</script>
-</body>
-</html>
+function openNG(){
+  if(role=='G'||role=='S')return;
+  pick=curPal;drawPal($('npal'),pick);$('ng').classList.remove('hide');$('nstart').focus();
+}
+function closeNG(){applyPal(curPal);$('ng').classList.add('hide')}
+$('create').onclick=()=>{
+  pick=curPal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
+  d
