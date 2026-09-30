@@ -52,13 +52,16 @@ details p{margin:8px 0 0}
 .patch h3 span{color:var(--mut);font-weight:normal;font-size:.8rem;margin-left:6px}
 .patch ul{margin:0;padding-left:20px}
 details.patch[open] summary{margin-bottom:0}
+h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-delay:calc(var(--i)*-.14s)}
+@keyframes wave{0%{transform:translateY(0)}12.5%{transform:translateY(-1px)}25%{transform:translateY(-2px)}37.5%{transform:translateY(-1px)}50%{transform:translateY(0)}62.5%{transform:translateY(1px)}75%{transform:translateY(2px)}87.5%{transform:translateY(1px)}}
+@media (prefers-reduced-motion:reduce){h1 .ch{animation:none}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header>
-  <h1>Kijutsu</h1>
-  <p class="sub">v1.01</p>
+  <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
+  <p class="sub">v1.02</p>
 </header>
 
 <section id="lobby" class="card">
@@ -84,11 +87,12 @@ details.patch[open] summary{margin-bottom:0}
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.02<span>Sep 30, 2026</span></h3>
+<ul><li>Title now has a small pixel-stepped flag wave animation.</li></ul>
 <h3>v1.01<span>Sep 30, 2026</span></h3>
 <ul><li>Added these patch notes.</li>
 <li>Now only the host can restart or create a new game.</li>
-<li>Name Change to: Kijutsu</li>
-</ul>
+<li>Patch notes are hidden while in a game.</li></ul>
 <h3>v1.0<span>Sep 29, 2026</span></h3>
 <ul><li>initial release</li></ul>
 </details>
@@ -214,6 +218,7 @@ $('local').onclick=()=>{inRoom=false;role='both';seq=0;init();$('lobby').classLi
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=()=>{if(role=='G'||role=='S')return;init();endMove(true)};
 $('leave').onclick=leave;
+(()=>{const h=$('title');h.textContent='';[...'Wizord Geam'].forEach((c,i)=>{const e=document.createElement('span');e.className='ch';e.setAttribute('aria-hidden','true');e.style.setProperty('--i',i);e.textContent=c==' '?'\u00a0':c;h.appendChild(e)})})();
 </script>
 </body>
 </html>
