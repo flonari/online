@@ -125,7 +125,7 @@ const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,role='both',peers={Y:false,G:false,S:0},live=false;
 const $=id=>document.getElementById(id);
-
+ 
 function init(){
   B=Array(25).fill(null);X=Array(25).fill(false);
   [1,2,3,5,9].forEach(i=>B[i]='Y');[15,19,21,22,23].forEach(i=>B[i]='G');
@@ -190,7 +190,7 @@ function render(){
   }
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length};
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(role==p?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
