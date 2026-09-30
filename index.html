@@ -41,13 +41,8 @@ h2{font-size:1.1rem;margin:0}
 .c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
 .c svg.x{transform:rotate(90deg)}
 #win{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
-.wc{background:var(--card);color:var(--fg);border:3px solid var(--wcol,var(--line));border-radius:16px;padding:20px 22px;text-align:center;box-shadow:0 0 0 4px rgba(255,255,255,.08),0 10px 30px rgba(0,0,0,.45);animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
-.trophy{font-size:3rem;line-height:1;animation:bob 1.6s ease-in-out infinite}
-#wt{font-size:1.7rem;margin:6px 0 2px}
-#ws{margin:0 0 12px;color:var(--mut);font-size:.95rem}
-#wwait{margin:0 0 10px;color:var(--mut);font-size:.85rem}
-@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes bob{50%{transform:translateY(-4px) rotate(-4deg)}}
+.wc{background:var(--card);color:var(--fg);border:2px solid var(--fg);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:var(--shadow)}
+#wt{font-size:1.5rem;margin:0 0 12px}
 #msg{min-height:3em;text-align:center;font-size:1.05rem}
 .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 button.a{font:inherit;padding:8px 16px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s}
@@ -67,14 +62,14 @@ details p{margin:8px 0 0}
 details.patch[open] summary{margin-bottom:0}
 h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-delay:calc(var(--i)*-.14s)}
 @keyframes wave{0%{transform:translateY(0)}12.5%{transform:translateY(-1px)}25%{transform:translateY(-2px)}37.5%{transform:translateY(-1px)}50%{transform:translateY(0)}62.5%{transform:translateY(1px)}75%{transform:translateY(2px)}87.5%{transform:translateY(1px)}}
-@media (prefers-reduced-motion:reduce){h1 .ch,.wc,.trophy{animation:none}}
+@media (prefers-reduced-motion:reduce){h1 .ch{animation:none}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.02</p>
+  <p class="sub">v1.03</p>
 </header>
 
 <section id="lobby" class="card">
@@ -98,10 +93,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
       <div id="board"></div>
       <div id="win" class="hide" role="alertdialog" aria-live="polite">
         <div class="wc" id="wc">
-          <div class="trophy" id="wi"></div>
           <h2 id="wt"></h2>
-          <p id="ws"></p>
-          <p id="wwait" class="hide">Waiting for the host to start a new game.</p>
           <div class="row"><button class="a primary" id="wnew">New game</button><button class="a" id="wview">View board</button></div>
         </div>
       </div>
@@ -115,9 +107,10 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
-<h3>v1.02<span>Sep 30, 2026</span></h3>
+<h3>v1.03<span>Sep 30, 2026</span></h3>
 <ul><li>Added a win screen.</li>
 <li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
+<h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a Header Animation.</li></ul>
 <h3>v1.01<span>Sep 30, 2026</span></h3>
 <ul><li>Added these patch notes.</li>
@@ -198,7 +191,7 @@ function render(){
   }
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Captured ${C[p]}/3<br>On board ${mine(p).length}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>${over?'&nbsp;':turn==p?(role==p?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
@@ -212,12 +205,8 @@ function render(){
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
   if(showWin){
     const w=C.Y>=3?'Y':C.G>=3?'G':null;
-    $('wc').style.setProperty('--wcol',w?COL[w]:'var(--line)');
-    $('wi').textContent=w?'🏆':'🤝';
     $('wt').innerHTML=w?`<i class="dot" style="background:${COL[w]}"></i>${w==role?'You win!':NAME[w]+' wins!'}`:"It's a draw!";
-    $('ws').textContent=w?NAME[w]+' captured 3 enemy wizards.':'Stalemate: neither side can act.';
     $('wnew').classList.toggle('hide',!host);$('wnew').disabled=inRoom&&!live;
-    $('wwait').classList.toggle('hide',host);
   }
   let m='';
   if(over)m='Game over.';
