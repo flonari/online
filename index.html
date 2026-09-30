@@ -14,6 +14,7 @@ header{text-align:center}
 h1{font-size:2.6rem;margin:0;letter-spacing:.1em;line-height:1.1}
 h2{font-size:1.1rem;margin:0}
 .sub{color:var(--mut);margin:4px 0 0;font-style:italic}
+.mode{padding:2px 12px;font-size:.8rem;margin-top:8px}
 .card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
 #lobby,#setup{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
 #lobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
@@ -74,6 +75,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
   <p class="sub">v1.03</p>
+  <button class="a mode" id="mode" type="button">Theme: Auto</button>
 </header>
 
 <section id="lobby" class="card">
@@ -81,7 +83,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   <div class="row"><button class="a primary" id="create">Create room</button></div>
   <div class="or">or join an existing room with its code</div>
   <div class="row"><input id="code" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="join">Join</button></div>
-  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches. A code only joins a room that already exists.</p>
+  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches.</p>
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
@@ -126,7 +128,6 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <ul><li>Spectator count is shown in the bottom left during online games.</li>
 <li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
 <li>Create room menu: pick a custom or random room code and a color palette.</li>
-<li>The host can pick a new palette whenever they start a new game.</li></ul>
 <h3>v1.02<span>Sep 30, 2026</span></h3>
 <ul><li>Added a win screen.</li>
 <li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
@@ -158,31 +159,50 @@ let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:fal
 let curPal='classic',pick='classic';
 const $=id=>document.getElementById(id);
 
-// palettes: [name, bg, card, fg, light tile, dark tile, muted, line, highlight]
+// palettes: name, light set, dark set. Each set: bg card fg light-tile dark-tile muted line highlight
 const PK=['--bg','--card','--fg','--l','--d','--mut','--line','--hl'];
+const P=(n,l,d)=>[n,l.split(' '),d.split(' ')];
 const PALS={
-  classic:['Classic','#f3e9e4','#fbf5f2','#2b1d1d','#b56666','#5a3535','#7a6060','#dcc9c3','#c8f06a'],
-  ocean:['Ocean','#e6f0f5','#f4f9fb','#122a36','#6fa3c0','#2f5f7d','#567486','#c3d8e3','#f6e27a'],
-  forest:['Forest','#e9efe3','#f5f8f1','#1f2a1b','#9bb37a','#4a6332','#657558','#ccd8bf','#f2e56b'],
-  midnight:['Midnight','#12121c','#1c1c2b','#e6e6f5','#55537a','#2b2a45','#9a99bd','#34334f','#9dffd8'],
-  candy:['Candy','#fbeaf2','#fff6fa','#3a1f2d','#e79ab9','#b4567f','#8a5a70','#efcadb','#fff06a'],
-  sunset:['Sunset','#fbeee0','#fff7ee','#3a2214','#e3a06a','#a8502c','#866048','#efd2b8','#b6f26a']
+  classic:P('Classic','#f3e9e4 #fbf5f2 #2b1d1d #b56666 #5a3535 #7a6060 #dcc9c3 #c8f06a','#1c1213 #2a1c1d #f1e3df #a65a5a #4a2a2a #b09a98 #4a3535 #c8f06a'),
+  ocean:P('Ocean','#e6f0f5 #f4f9fb #122a36 #6fa3c0 #2f5f7d #567486 #c3d8e3 #f6e27a','#0f1b22 #172730 #e2f0f6 #4f7f99 #23475c #8fb0c0 #2b4452 #f6e27a'),
+  forest:P('Forest','#e9efe3 #f5f8f1 #1f2a1b #9bb37a #4a6332 #657558 #ccd8bf #f2e56b','#141b12 #1e2a1b #e6efe0 #6f8a4f #334a22 #9fb28f #32452b #f2e56b'),
+  midnight:P('Midnight','#e9e9f5 #f6f6fd #1c1c33 #9c9ac9 #55537a #6b6a8f #cfcfe6 #1fc79a','#12121c #1c1c2b #e6e6f5 #55537a #2b2a45 #9a99bd #34334f #9dffd8'),
+  candy:P('Candy','#fbeaf2 #fff6fa #3a1f2d #e79ab9 #b4567f #8a5a70 #efcadb #fff06a','#2a1420 #381c2b #fbe3ee #b0507a #6e2a4b #d3a1b9 #55304a #fff06a'),
+  sunset:P('Sunset','#fbeee0 #fff7ee #3a2214 #e3a06a #a8502c #866048 #efd2b8 #b6f26a','#231710 #311f15 #fbe9d9 #b7703f #6b3018 #c9a48a #4d3324 #b6f26a')
 };
+let mode='auto',shownPal='classic';
+const mq=matchMedia('(prefers-color-scheme: dark)');
+const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 function applyPal(id){
-  const st=document.documentElement.style,p=PALS[id];
-  PK.forEach((k,i)=>p&&id!='classic'?st.setProperty(k,p[i+1]):st.removeProperty(k));
+  if(!PALS[id])id='classic';
+  shownPal=id;
+  const d=isDark(),v=PALS[id][d?2:1],st=document.documentElement.style;
+  PK.forEach((k,i)=>st.setProperty(k,v[i]));
+  st.setProperty('--shadow',d?'0 4px 14px rgba(0,0,0,.4)':'0 4px 14px rgba(60,20,20,.15)');
+  st.colorScheme=d?'dark':'light';
 }
 function drawPal(el,cur){
   el.innerHTML='';
   Object.entries(PALS).forEach(([id,p])=>{
-    const b=document.createElement('button');
+    const v=p[isDark()?2:1],b=document.createElement('button');
     b.type='button';b.className='sw';b.title=p[0];b.setAttribute('aria-label',p[0]+' palette');
     b.setAttribute('aria-pressed',id==cur);
-    b.style.background=`linear-gradient(135deg,${p[4]} 50%,${p[5]} 50%)`;
+    b.style.background=`linear-gradient(135deg,${v[3]} 50%,${v[4]} 50%)`;
     b.onclick=()=>{pick=id;applyPal(id);drawPal(el,id)};
     el.appendChild(b);
   });
 }
+function setMode(m,save){
+  mode=m;
+  if(save)try{localStorage.setItem('kj-mode',m)}catch(e){}
+  $('mode').textContent='Theme: '+{auto:'Auto',light:'Light',dark:'Dark'}[m];
+  applyPal(shownPal);
+  ['spal','npal'].forEach(id=>{if($(id).children.length)drawPal($(id),pick)});
+}
+mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
+$('mode').onclick=()=>setMode({auto:'light',light:'dark',dark:'auto'}[mode],true);
+try{const m=localStorage.getItem('kj-mode');if(m=='light'||m=='dark')mode=m}catch(e){}
+setMode(mode);
 function view(v){
   ['lobby','setup','game'].forEach(s=>$(s).classList.toggle('hide',s!=v));
   $('patch').classList.toggle('hide',v=='game');
