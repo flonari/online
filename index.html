@@ -190,7 +190,7 @@ function render(){
   }
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(role==p?'Your turn':'Turn'):'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length};
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
