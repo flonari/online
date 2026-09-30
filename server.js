@@ -3,10 +3,18 @@ const http = require('http'), fs = require('fs'), path = require('path');
 const { WebSocketServer } = require('ws');
 
 const PORT = process.env.PORT || 3000;
-const page = () => fs.readFileSync(path.join(__dirname, 'index.html'));
+// Only these files are served; every other path returns the game page.
+const FILES = {
+  '/cat.png': ['cat.png', 'image/png'],
+  '/secret.ogg': ['secret.ogg', 'audio/ogg']
+};
 const srv = http.createServer((req, res) => {
-  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-  res.end(page());
+  const f = FILES[req.url.split('?')[0]] || ['index.html', 'text/html; charset=utf-8'];
+  fs.readFile(path.join(__dirname, f[0]), (err, data) => {
+    if (err) { res.writeHead(404); return res.end('Not found'); }
+    res.writeHead(200, { 'content-type': f[1] });
+    res.end(data);
+  });
 });
 const wss = new WebSocketServer({ server: srv, maxPayload: 8192 });
 const rooms = new Map();
