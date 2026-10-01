@@ -337,7 +337,7 @@ function playAnim(cells,a){
     an=svg.animate([{transform:`translate(${f.left-t.left}px,${f.top-t.top}px) ${base}`},{transform:`translate(0px,0px) ${base}`}],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'});
   }
   an.onfinish=an.oncancel=()=>{to.style.zIndex=''};
-  const hl=getComputedStyle(document.documentElement).getPropertyValue('--hl').trim()||'#c8f06a';
+  const hl=getComputedStyle(document.documentElement).getPropertyValue(B[a.to]=='Y'?'--y':'--g').trim()||'#c8f06a';
   to.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'});
 }
 function apply(d,force,quiet){
