@@ -229,7 +229,7 @@ const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
 const ngCb=id=>{pick=id;applyPal(id)};
 function openTheme(){
   $('tpwrap').classList.toggle('hide',inRoom);
-  $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.';
+ $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
   if(!inRoom)drawPal($('tpal'),themePal,id=>{themePal=curPal=pick=id;applyPal(id);saveTheme()});
   $('th').classList.remove('hide');$('tdone').focus();
 }
