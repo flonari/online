@@ -77,7 +77,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.045</p>
+  <p class="sub">v1.05</p>
   <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
@@ -90,6 +90,9 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
+  <div class="or">or play against the bot</div>
+  <div class="row"><button class="a" data-lv="easy">Easy</button><button class="a" data-lv="normal">Normal</button><button class="a" data-lv="hard">Hard</button></div>
+  <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first.</p>
   <p id="lerr" role="status"></p>
 </section>
 
@@ -130,34 +133,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 </section>
 
 <details class="card"><summary>Rules</summary>
-<p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
-<details class="card patch" id="patch"><summary>Patch notes</summary>
-<h3>v1.045<span>Oct 1, 2026</span></h3>
-  <ul><li>Added sounds</li>
-  <ul><li>Added Pawn Color Options</li>
-<li>Uncluttered the in-game screen</li>
-<li>New game no longer asks for a palette.</li></ul>
-<h3>v1.04<span>Oct 1, 2026</span></h3>
-<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
-<li>The palette you pick in Create room is saved as your theme.</li>
-<li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
-<h3>v1.03<span>Sep 30, 2026</span></h3>
-<ul><li>Every palette now has a light and a dark version.</li>
-<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
-<ul><li>Spectator count is shown in the bottom left during online games.</li>
-<li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
-<li>Create room menu: pick a custom or random room code and a color palette.</li>
-<h3>v1.02<span>Sep 30, 2026</span></h3>
-<ul><li>Added a win screen.</li>
-<li>Reserve wizards are now shown as balls at the sides of the board.</li></ul>
-<ul><li>Added a Header Animation.</li></ul>
-<h3>v1.01<span>Sep 29, 2026</span></h3>
-<ul><li>Added these patch notes.</li>
-<li>Now only the host can restart or create a new game.</li>
-<li>Patch notes are hidden while in a game.</li></ul>
-<h3>v1.0<span>Sep 28, 2026</span></h3>
-<ul><li>initial release</li></ul>
-</details>
+<p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
 </main>
 
 <div id="spec" class="hide" role="status"></div>
@@ -176,7 +152,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
-let curPal='classic',pick='classic',anim=null,rnd=false;
+let curPal='classic',pick='classic',anim=null,rnd=false,botLevel=null,botTimer=0;
 const $=id=>document.getElementById(id);
 const SFX={};
 ['move','take','win'].forEach(n=>{const a=new Audio('/'+n+'.ogg');a.preload='auto';SFX[n]=a});
@@ -298,19 +274,147 @@ function begin(){
   if(passed>=2){over=true;note='Stalemate: neither side can act. Draw.'}
   else if(!over&&refresh())note+=' '+NAME[turn]+"'s wizards refresh.";
 }
+// ---- bot ----
+const BOT='G',NBS=Array.from({length:25},(_,i)=>nb(i));
+const pickOne=a=>a[Math.random()*a.length|0];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const sClone=s=>({B:s.B.slice(),X:s.X.slice(),R:{Y:s.R.Y,G:s.R.G},C:{Y:s.C.Y,G:s.C.G},turn:s.turn,over:s.over});
+const sCount=(b,p)=>{let n=0;for(let i=0;i<25;i++)if(b[i]==p)n++;return n};
+function sActs(s,p){
+  const b=s.B,q=opp(p),out=[];
+  if(sCount(b,p)<5&&s.R[p]>0){const r=p=='Y'?0:4;for(let c=0;c<5;c++){const t=r*N+c;if(b[t])continue;let e=0;for(const n of NBS[t])if(b[n]==q)e++;if(e<3)out.push({to:t})}}
+  for(let i=0;i<25;i++){
+    if(b[i]!=p||s.X[i])continue;
+    for(let t=0;t<25;t++){
+      if(b[t])continue;
+      let e=0,f=false;
+      for(const n of NBS[t]){if(b[n]==q)e++;else if(n!=i&&b[n]==p)f=true}
+      if(e<3&&f)out.push({from:i,to:t});
+    }
+  }
+  return out;
+}
+function sRefresh(s){
+  let all=true,any=false;
+  for(let i=0;i<25;i++)if(s.B[i]==s.turn){any=true;if(!s.X[i]){all=false;break}}
+  if(any&&all){for(let i=0;i<25;i++)if(s.B[i]==s.turn)s.X[i]=false;return true}
+  return false;
+}
+function sBegin(s){
+  let passed=0;
+  while(!s.over&&!sActs(s,s.turn).length&&passed<2){
+    if(sRefresh(s))continue;
+    s.turn=opp(s.turn);passed++;
+  }
+  if(passed>=2)s.over=true;else if(!s.over)sRefresh(s);
+}
+function sApply(s,a){
+  const n=sClone(s),p=n.turn,q=opp(p),b=n.B;
+  b[a.to]=p;n.X[a.to]=true;
+  if(a.from===undefined)n.R[p]--;else{b[a.from]=null;n.X[a.from]=false}
+  let k=0;
+  for(let i=0;i<25;i++)if(b[i]==q){let c=0;for(const m of NBS[i])if(b[m]==p)c++;if(c>=3){b[i]=null;n.X[i]=false;k++}}
+  n.C[p]+=k;
+  if(sCount(b,q)<=2)n.over=true;else{n.turn=q;sBegin(n)}
+  return n;
+}
+function sEval(s,me){
+  const q=opp(me);
+  const b=s.B,nm=sCount(b,me),nq=sCount(b,q);
+  if(s.over)return nq<=2?10000:nm<=2?-10000:0;
+  let v=20*(s.C[me]-s.C[q])+6*(s.R[me]-s.R[q])+(nq<=3?25:0)-(nm<=3?25:0);
+  for(let i=0;i<25;i++){
+    const o=b[i];if(!o)continue;
+    const e=o==me?q:me;let a=0;
+    for(const m of NBS[i])if(b[m]==e)a++;
+    const f=a>=2?6:a==1?1:0;
+    if(o==me)v+=12-f;else v+=f-12;
+  }
+  return v;
+}
+let timedOut=false,deadline=0;
+function search(s,d,alpha,beta,me){
+  if(timedOut||performance.now()>deadline){timedOut=true;return 0}
+  if(s.over){const e=sEval(s,me);return e>0?e+d:e<0?e-d:0}
+  if(d==0)return sEval(s,me);
+  const acts=sActs(s,s.turn);
+  if(!acts.length)return sEval(s,me);
+  const max=s.turn==me;
+  let kids=acts.map(a=>{const k=sApply(s,a);return{k,v:d>=2?sEval(k,me):0}});
+  if(d>=2)kids.sort((x,y)=>max?y.v-x.v:x.v-y.v);
+  let best=max?-Infinity:Infinity;
+  for(const x of kids){
+    const v=search(x.k,d-1,alpha,beta,me);
+    if(timedOut)return 0;
+    if(max){if(v>best)best=v;if(best>alpha)alpha=best}
+    else{if(v<best)best=v;if(best<beta)beta=best}
+    if(alpha>=beta)break;
+  }
+  return best;
+}
+function botChoose(level,me=BOT){
+  const s={B:B.slice(),X:X.slice(),R:{Y:R.Y,G:R.G},C:{Y:C.Y,G:C.G},turn:me,over:false};
+  const acts=sActs(s,me);
+  if(!acts.length)return null;
+  const kids=acts.map(a=>({a,k:sApply(s,a),v:0}));
+  if(level=='easy'){
+    const caps=kids.filter(x=>x.k.C[me]>s.C[me]);
+    if(caps.length&&Math.random()<.5)return pickOne(caps).a;
+    return pickOne(kids).a;
+  }
+  if(level=='normal'){
+    deadline=performance.now()+1000;timedOut=false;
+    kids.forEach(x=>{x.v=search(x.k,1,-Infinity,Infinity,me)});
+    const best=Math.max(...kids.map(x=>x.v));
+    return pickOne(kids.filter(x=>x.v>=best-4)).a;
+  }
+  shuffle(kids);
+  let chosen=kids[0].a;
+  deadline=performance.now()+1200;timedOut=false;
+  for(let d=2;d<=6;d++){
+    let best=-Infinity,ba=null;
+    for(const x of kids){
+      const v=search(x.k,d-1,best,Infinity,me);
+      if(timedOut)break;
+      x.v=v;if(v>best){best=v;ba=x.a}
+    }
+    if(timedOut||!ba)break;
+    chosen=ba;
+    if(best>=9000)break;
+    kids.sort((x,y)=>y.v-x.v);
+  }
+  return chosen;
+}
+function botPlay(){
+  botTimer=0;
+  if(!botLevel||inRoom||over||turn!=BOT)return;
+  const a=botChoose(botLevel);
+  if(!a)return;
+  B[a.to]=BOT;X[a.to]=true;
+  if(a.from===undefined){anim={to:a.to,place:true};R[BOT]--}
+  else{anim={from:a.from,to:a.to};B[a.from]=null;X[a.from]=false}
+  note='';endMove();
+}
+function botSchedule(){
+  clearTimeout(botTimer);botTimer=0;
+  if(botLevel&&!inRoom&&!over&&turn==BOT)botTimer=setTimeout(botPlay,reduce?250:700);
+}
 function endMove(reset){
   if(!reset){
     const p=turn,dead=mine(opp(p)).filter(i=>nb(i).filter(n=>B[n]==p).length>=3);
     dead.forEach(i=>{B[i]=null;X[i]=false;C[p]++});
     if(dead.length)note=NAME[p]+' captured '+dead.length+' wizard'+(dead.length>1?'s':'')+'!';
     sel=null;placing=false;
-    if(C[p]>=3){over=true;note=NAME[p]+' wins with 3 captures!'}
+    const won=mine(opp(p)).length<=2;
+    if(won){over=true;note=NAME[p]+' wins! '+NAME[opp(p)]+' is down to '+mine(opp(p)).length+' wizard'+(mine(opp(p)).length==1?'':'s')+'.'}
     else{turn=opp(p);begin()}
-    sfx(C[p]>=3?'win':dead.length?'take':'move');
+    sfx(won?'win':dead.length?'take':'move');
   }
-  seq++;render();push(reset);
+  seq++;render();push(reset);botSchedule();
 }
-const canAct=()=>!over&&(role=='both'||(role==turn&&live));
+// a player loses when only 2 (or fewer) of their wizards are left on the board
+const winner=()=>mine('Y').length<=2?'G':mine('G').length<=2?'Y':null;
+const canAct=()=>!over&&(role=='both'?!(botLevel&&turn==BOT):(role==turn&&live));
 function click(i){
   if(!canAct())return;
   if(placing){if(places(turn).includes(i)){anim={to:i,place:true};B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
@@ -351,15 +455,16 @@ function apply(d,force,quiet){
   if(typeof d.pc=='string'&&PCS[d.pc]&&d.pc!==curPc)applyPc(d.pc);
   const mv=force?null:diffMove(old,B);
   if(mv&&!reduce)anim=mv;
-  if(mv&&!quiet)sfx(over&&!oldOver&&(C.Y>=3||C.G>=3)?'win':C.Y+C.G>oldC?'take':'move');
+  if(mv&&!quiet)sfx(over&&!oldOver&&winner()?'win':C.Y+C.G>oldC?'take':'move');
   render();
 }
 const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
 function render(){
+  const fl=role=='Y'||!!botLevel,me=p=>role==p||(!!botLevel&&p=='Y');
   const tg=!canAct()?[]:placing?places(turn):sel!==null?moves(sel):[];
   const el=$('board');el.innerHTML='';const cells=[];
   for(let k=0;k<25;k++){
-    const i=role=='Y'?24-k:k,v=B[i],b=document.createElement('button');
+    const i=fl?24-k:k,v=B[i],b=document.createElement('button');
     b.className='c'+(((i/N|0)+i%N)%2?' dk':'')+(sel===i?' sel':'')+(tg.includes(i)?' t':'');
     b.setAttribute('aria-label','Row '+((i/N|0)+1)+' column '+(i%N+1)+(v?', '+NAME[v]+' wizard'+(X[i]?' exhausted':''):''));
     if(v)b.innerHTML=meeple(v,X[i]);
@@ -368,11 +473,11 @@ function render(){
   const a=anim;anim=null;if(a&&!reduce&&cells[a.to])playAnim(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(role==p?'Your turn':'Turn'):'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
-    r.style.justifyContent=((p=='Y')==(role!='Y'))?'flex-start':'flex-end';
+    r.style.justifyContent=((p=='Y')==!fl)?'flex-start':'flex-end';
     for(let k=0;k<RES;k++){const s=document.createElement('i');s.className='ball'+(k<R[p]?'':' used');s.style.setProperty('--bc',COL[p]);r.appendChild(s)}
   });
   const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
@@ -381,8 +486,8 @@ function render(){
   if(!over)dismissed=false;
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
   if(showWin){
-    const w=C.Y>=3?'Y':C.G>=3?'G':null;
-    $('wt').innerHTML=w?`<i class="dot" style="background:${COL[w]}"></i>${w==role?'You win!':NAME[w]+' wins!'}`:"It's a draw!";
+    const w=winner();
+    $('wt').innerHTML=w?`<i class="dot" style="background:${COL[w]}"></i>${me(w)?'You win!':botLevel?'The bot wins!':NAME[w]+' wins!'}`:"It's a draw!";
     $('wnew').classList.toggle('hide',!host);$('wnew').disabled=inRoom&&!live;
   }
   let m='';
@@ -392,14 +497,15 @@ function render(){
     if(inRoom&&!live)m+='Connecting...';
     else if(role=='S')m+="Watching. It's "+NAME[turn]+"'s turn.";
     else if(role!='both'&&role!=turn)m+="Waiting for "+NAME[turn]+'...';
-    else m+=(role=='both'?NAME[turn]+"'s turn":'Your turn')+(placing?': pick a tile on your home row.':sel!==null?': choose a highlighted tile.':': select a wizard.');
+    else if(botLevel&&turn==BOT)m+='The bot is thinking...';
+    else m+=(role=='both'&&!botLevel?NAME[turn]+"'s turn":'Your turn')+(placing?': pick a tile on your home row.':sel!==null?': choose a highlighted tile.':': select a wizard.');
   }
   $('msg').textContent=m;
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
-  }else $('stat').textContent='Local game on this device';
+  }else $('stat').textContent=botLevel?'Local game vs bot ('+botLevel+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
@@ -441,13 +547,14 @@ function enter(c,create){
   if(c.length<3){err.textContent='Enter a code of 3 to 12 letters or digits.';return}
   err.textContent='Connecting...';
   dropWs();
+  botLevel=null;clearTimeout(botTimer);
   code=c;creating=!!create;inRoom=true;role='Y';seq=0;peers={Y:false,G:false,S:0};
   rnd=!!create&&$('srnd').checked;
   if(create){curPal=themePal=pick;themePc=pickPc;applyPc(themePc);saveTheme()}
   init();connect();
 }
 function leave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';rnd=false;
+  dropWs();inRoom=false;live=false;creating=false;role='both';rnd=false;botLevel=null;clearTimeout(botTimer);
   curPal=themePal;applyPal(themePal);applyPc(themePc);
   $('spec').classList.add('hide');
   view('lobby');$('lerr').textContent='';
@@ -459,6 +566,7 @@ function randomise(){
 }
 function newGame(){
   if(role=='G'||role=='S')return;
+  clearTimeout(botTimer);
   if(rnd)randomise();
   init();endMove(true);
 }
@@ -473,7 +581,15 @@ $('scode').onkeydown=e=>{if(e.key=='Enter')enter($('scode').value,true)};
 $('sback').onclick=()=>{dropWs();inRoom=false;creating=false;curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby')};
 $('join').onclick=()=>enter($('code').value,false);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value,false)};
-$('local').onclick=()=>{dropWs();inRoom=false;rnd=false;role='both';seq=0;curPal=themePal;applyPal(themePal);applyPc(themePc);init();view('game');render()};
+function startLocal(level){
+  dropWs();inRoom=false;clearTimeout(botTimer);
+  botLevel=level||null;rnd=!!level;role='both';seq=0;
+  curPal=themePal;applyPal(themePal);applyPc(themePc);
+  if(level)randomise();
+  init();view('game');render();
+}
+$('local').onclick=()=>startLocal(null);
+document.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>startLocal(b.dataset.lv));
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=newGame;
 $('wnew').onclick=newGame;
