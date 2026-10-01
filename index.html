@@ -77,7 +77,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.05</p>
+  <p class="sub">v1.06</p>
   <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
@@ -134,6 +134,36 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
+<details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.06<span>Oct 1, 2026</span></h3>
+<ul><li>Play against a bot on Easy, Normal or Hard.</li>
+<li>Pawn color pairs, plus a Randomise option for the palette and pawn colors.</li>
+<li>Sounds for moves, captures and wins.</li>
+<li>New win rule: reduce your opponent to 2 wizards on the board.</li>
+<li>Fixed a crash that stopped the board from showing in some screens.</li></ul>
+<h3>v1.05<span>Oct 1, 2026</span></h3>
+<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
+<li>The palette you pick in Create room is saved as your theme.</li>
+<li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
+<h3>v1.04<span>Oct 1, 2026</span></h3>
+<ul><li>Every palette now has a light and a dark version.</li>
+<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
+<h3>v1.03<span>Oct 1, 2026</span></h3>
+<ul><li>Spectator count is shown in the bottom left during online games.</li>
+<li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
+<li>Create room menu: pick a custom or random room code and a color palette.</li>
+<li>The host can pick a new palette whenever they start a new game.</li></ul>
+<h3>v1.02<span>Sep 30, 2026</span></h3>
+<ul><li>Added a win screen.</li>
+<li>Reserve wizards are now shown as balls at the sides of the board.</li>
+<li>Added a Header Animation.</li></ul>
+<h3>v1.01<span>Sep 30, 2026</span></h3>
+<ul><li>Added these patch notes.</li>
+<li>Now only the host can restart or create a new game.</li>
+<li>Patch notes are hidden while in a game.</li></ul>
+<h3>v1.0<span>Sep 29, 2026</span></h3>
+<ul><li>initial release</li></ul>
+</details>
 </main>
 
 <div id="spec" class="hide" role="status"></div>
@@ -246,8 +276,9 @@ function openTheme(){
 function closeTheme(){$('th').classList.add('hide');const e=$('spal');if(e._cb)drawPal(e,pick,e._cb)}
 function view(v){
   ['lobby','setup','game'].forEach(s=>$(s).classList.toggle('hide',s!=v));
-  $('patch').classList.toggle('hide',v=='game');
-  $('mode').classList.toggle('hide',v=='game');
+  const pt=$('patch'),md=$('mode');
+  if(pt)pt.classList.toggle('hide',v=='game');
+  if(md)md.classList.toggle('hide',v=='game');
 }
 const rand=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];return s};
 
@@ -454,7 +485,7 @@ function apply(d,force,quiet){
   if(typeof d.pal=='string'&&PALS[d.pal]&&d.pal!==curPal){curPal=d.pal;applyPal(curPal)}
   if(typeof d.pc=='string'&&PCS[d.pc]&&d.pc!==curPc)applyPc(d.pc);
   const mv=force?null:diffMove(old,B);
-  if(mv&&!reduce)anim=mv;
+  if(mv&&!reduce&&!quiet)anim=mv;
   if(mv&&!quiet)sfx(over&&!oldOver&&winner()?'win':C.Y+C.G>oldC?'take':'move');
   render();
 }
