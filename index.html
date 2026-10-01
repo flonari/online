@@ -15,6 +15,7 @@ h1{font-size:2.6rem;margin:0;letter-spacing:.1em;line-height:1.1}
 h2{font-size:1.1rem;margin:0}
 .sub{color:var(--mut);margin:4px 0 0;font-style:italic}
 .mode{padding:2px 12px;font-size:.8rem;margin-top:8px}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
 .card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
 #lobby,#setup{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
 #lobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
@@ -74,8 +75,8 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.03</p>
-  <button class="a mode" id="mode" type="button">Theme: Auto</button>
+  <p class="sub">v1.04</p>
+  <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
 <section id="lobby" class="card">
@@ -83,7 +84,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   <div class="row"><button class="a primary" id="create">Create room</button></div>
   <div class="or">or join an existing room with its code</div>
   <div class="row"><input id="code" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="join">Join</button></div>
-  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches.</p>
+  <p class="hint">First player in a room is Yellow, the second is Green. Anyone else watches. A code only joins a room that already exists.</p>
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
@@ -124,7 +125,13 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.04<span>Oct 1, 2026</span></h3>
+<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
+<li>The palette you pick in Create room is saved as your theme.</li>
+<li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
 <h3>v1.03<span>Oct 1, 2026</span></h3>
+<ul><li>Every palette now has a light and a dark version.</li>
+<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
 <ul><li>Spectator count is shown in the bottom left during online games.</li>
 <li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
 <li>Create room menu: pick a custom or random room code and a color palette.</li>
@@ -152,11 +159,21 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   </div>
 </div>
 
+<div id="th" class="ov hide" role="dialog" aria-modal="true" aria-label="Theme">
+  <div class="wc">
+    <h2>Theme</h2>
+    <div class="row seg" id="tmode"><button class="a" type="button" data-m="auto">Auto</button><button class="a" type="button" data-m="light">Light</button><button class="a" type="button" data-m="dark">Dark</button></div>
+    <div id="tpwrap"><div class="row" id="tpal"></div></div>
+    <p class="hint" id="thint"></p>
+    <div class="row"><button class="a primary" id="tdone" type="button">Done</button></div>
+  </div>
+</div>
+
 <script>
 const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
-let curPal='classic',pick='classic';
+let curPal='classic',pick='classic',anim=null;
 const $=id=>document.getElementById(id);
 
 // palettes: name, light set, dark set. Each set: bg card fg light-tile dark-tile muted line highlight
@@ -170,9 +187,13 @@ const PALS={
   candy:P('Candy','#fbeaf2 #fff6fa #3a1f2d #e79ab9 #b4567f #8a5a70 #efcadb #fff06a','#2a1420 #381c2b #fbe3ee #b0507a #6e2a4b #d3a1b9 #55304a #fff06a'),
   sunset:P('Sunset','#fbeee0 #fff7ee #3a2214 #e3a06a #a8502c #866048 #efd2b8 #b6f26a','#231710 #311f15 #fbe9d9 #b7703f #6b3018 #c9a48a #4d3324 #b6f26a')
 };
-let mode='auto',shownPal='classic';
+let mode='auto',themePal='classic',shownPal='classic';
 const mq=matchMedia('(prefers-color-scheme: dark)');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
+const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
+const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
+const saveTheme=()=>ck('kj-theme',themePal+'|'+mode);
 function applyPal(id){
   if(!PALS[id])id='classic';
   shownPal=id;
@@ -181,28 +202,38 @@ function applyPal(id){
   st.setProperty('--shadow',d?'0 4px 14px rgba(0,0,0,.4)':'0 4px 14px rgba(60,20,20,.15)');
   st.colorScheme=d?'dark':'light';
 }
-function drawPal(el,cur){
-  el.innerHTML='';
+function drawPal(el,cur,cb){
+  el._cur=cur;el._cb=cb;el.innerHTML='';
   Object.entries(PALS).forEach(([id,p])=>{
     const v=p[isDark()?2:1],b=document.createElement('button');
     b.type='button';b.className='sw';b.title=p[0];b.setAttribute('aria-label',p[0]+' palette');
     b.setAttribute('aria-pressed',id==cur);
     b.style.background=`linear-gradient(135deg,${v[3]} 50%,${v[4]} 50%)`;
-    b.onclick=()=>{pick=id;applyPal(id);drawPal(el,id)};
+    b.onclick=()=>{cb(id);drawPal(el,id,cb)};
     el.appendChild(b);
   });
 }
 function setMode(m,save){
   mode=m;
-  if(save)try{localStorage.setItem('kj-mode',m)}catch(e){}
-  $('mode').textContent='Theme: '+{auto:'Auto',light:'Light',dark:'Dark'}[m];
+  document.querySelectorAll('#tmode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==m));
+  if(save)saveTheme();
   applyPal(shownPal);
-  ['spal','npal'].forEach(id=>{if($(id).children.length)drawPal($(id),pick)});
+  ['spal','npal','tpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb)});
 }
 mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
-$('mode').onclick=()=>setMode({auto:'light',light:'dark',dark:'auto'}[mode],true);
-try{const m=localStorage.getItem('kj-mode');if(m=='light'||m=='dark')mode=m}catch(e){}
-setMode(mode);
+(()=>{const t=(rc('kj-theme')||'').split('|');
+  if(PALS[t[0]])themePal=t[0];
+  if(['auto','light','dark'].includes(t[1]))mode=t[1];
+  curPal=pick=shownPal=themePal;setMode(mode)})();
+const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
+const ngCb=id=>{pick=id;applyPal(id)};
+function openTheme(){
+  $('tpwrap').classList.toggle('hide',inRoom);
+  $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':'Saved on this device with cookies.';
+  if(!inRoom)drawPal($('tpal'),themePal,id=>{themePal=curPal=pick=id;applyPal(id);saveTheme()});
+  $('th').classList.remove('hide');$('tdone').focus();
+}
+function closeTheme(){$('th').classList.add('hide');const e=$('spal');if(e._cb)drawPal(e,pick,e._cb)}
 function view(v){
   ['lobby','setup','game'].forEach(s=>$(s).classList.toggle('hide',s!=v));
   $('patch').classList.toggle('hide',v=='game');
@@ -246,33 +277,56 @@ function endMove(reset){
 const canAct=()=>!over&&(role=='both'||(role==turn&&live));
 function click(i){
   if(!canAct())return;
-  if(placing){if(places(turn).includes(i)){B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
-  if(sel!==null&&moves(sel).includes(i)){B[i]=turn;X[i]=true;B[sel]=null;X[sel]=false;note='';endMove();return}
+  if(placing){if(places(turn).includes(i)){if(role=='both')anim={to:i,place:true};B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
+  if(sel!==null&&moves(sel).includes(i)){if(role=='both')anim={from:sel,to:i};B[i]=turn;X[i]=true;B[sel]=null;X[sel]=false;note='';endMove();return}
   if(B[i]==turn&&!X[i]){sel=sel===i?null:i}else sel=null;
   render();
 }
 function send(m){if(ws&&ws.readyState==1)ws.send(JSON.stringify(m))}
 function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note,pal:curPal}})}
+function diffMove(o,n){
+  const add=[],gone=[];
+  for(let i=0;i<25;i++){if(!o[i]&&n[i])add.push(i);else if(o[i]&&!n[i])gone.push(i)}
+  if(add.length!=1)return null;
+  const to=add[0],from=gone.filter(i=>o[i]==n[to]);
+  return from.length==1?{from:from[0],to}:from.length==0?{to,place:true}:null;
+}
+function playAnim(cells,a){
+  const to=cells[a.to],svg=to&&to.querySelector('svg');if(!svg)return;
+  const base=X[a.to]?'rotate(90deg)':'';
+  let an;to.style.zIndex=3;
+  if(a.place)an=svg.animate([{transform:`scale(.4) ${base}`,opacity:0},{transform:`scale(1) ${base}`,opacity:1}],{duration:280,easing:'ease-out'});
+  else{
+    const f=cells[a.from].getBoundingClientRect(),t=to.getBoundingClientRect();
+    an=svg.animate([{transform:`translate(${f.left-t.left}px,${f.top-t.top}px) ${base}`},{transform:`translate(0px,0px) ${base}`}],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'});
+  }
+  an.onfinish=an.oncancel=()=>{to.style.zIndex=''};
+  const hl=getComputedStyle(document.documentElement).getPropertyValue('--hl').trim()||'#c8f06a';
+  to.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'});
+}
 function apply(d,force){
   const ok=d&&Number.isInteger(d.seq)&&Array.isArray(d.B)&&d.B.length==25&&d.B.every(v=>v===null||v==='Y'||v==='G')&&
     Array.isArray(d.X)&&d.X.length==25&&d.R&&d.C&&(d.turn=='Y'||d.turn=='G');
   if(!ok||(!force&&d.seq<=seq))return;
+  const old=B.slice();
   seq=d.seq;B=d.B;X=d.X.map(Boolean);R={Y:+d.R.Y||0,G:+d.R.G||0};C={Y:+d.C.Y||0,G:+d.C.G||0};
   turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;
   if(typeof d.pal=='string'&&PALS[d.pal]&&d.pal!==curPal){curPal=d.pal;applyPal(curPal)}
+  if(!reduce&&!force){const mv=diffMove(old,B);if(mv)anim=mv}
   render();
 }
 const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
 function render(){
   const tg=!canAct()?[]:placing?places(turn):sel!==null?moves(sel):[];
-  const el=$('board');el.innerHTML='';
+  const el=$('board');el.innerHTML='';const cells=[];
   for(let k=0;k<25;k++){
     const i=role=='Y'?24-k:k,v=B[i],b=document.createElement('button');
     b.className='c'+(((i/N|0)+i%N)%2?' dk':'')+(sel===i?' sel':'')+(tg.includes(i)?' t':'');
     b.setAttribute('aria-label','Row '+((i/N|0)+1)+' column '+(i%N+1)+(v?', '+NAME[v]+' wizard'+(X[i]?' exhausted':''):''));
     if(v)b.innerHTML=meeple(v,X[i]);
-    b.onclick=()=>click(i);el.appendChild(b);
+    b.onclick=()=>click(i);el.appendChild(b);cells[i]=b;
   }
+  const a=anim;anim=null;if(a&&!reduce&&cells[a.to])playAnim(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(role==p?'Your turn':'Turn'):'&nbsp;'}`;
@@ -316,7 +370,7 @@ function fail(msg){
   dropWs();inRoom=false;live=false;creating=false;
   $('ng').classList.add('hide');$('spec').classList.add('hide');
   if(was){view('setup');$('serr').textContent=msg}
-  else{applyPal('classic');curPal='classic';view('lobby');$('lerr').textContent=msg}
+  else{curPal=themePal;applyPal(themePal);view('lobby');$('lerr').textContent=msg}
 }
 function connect(){
   const s=ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
@@ -349,41 +403,44 @@ function enter(c,create){
   err.textContent='Connecting...';
   dropWs();
   code=c;creating=!!create;inRoom=true;role='Y';seq=0;peers={Y:false,G:false,S:0};
-  if(create)curPal=pick;
+  if(create){curPal=themePal=pick;saveTheme()}
   init();connect();
 }
 function leave(){
   dropWs();inRoom=false;live=false;creating=false;role='both';
-  applyPal('classic');curPal='classic';
+  curPal=themePal;applyPal(themePal);
   $('ng').classList.add('hide');$('spec').classList.add('hide');
   view('lobby');$('lerr').textContent='';
 }
 function openNG(){
   if(role=='G'||role=='S')return;
-  pick=curPal;drawPal($('npal'),pick);$('ng').classList.remove('hide');$('nstart').focus();
+  pick=curPal;drawPal($('npal'),pick,ngCb);$('ng').classList.remove('hide');$('nstart').focus();
 }
 function closeNG(){applyPal(curPal);$('ng').classList.add('hide')}
 $('create').onclick=()=>{
-  pick=curPal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
-  drawPal($('spal'),pick);view('setup');
+  pick=themePal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
+  drawPal($('spal'),pick,setupCb);view('setup');
 };
 $('srand').onclick=()=>{$('scode').value=rand()};
 $('sstart').onclick=()=>enter($('scode').value,true);
 $('scode').onkeydown=e=>{if(e.key=='Enter')enter($('scode').value,true)};
-$('sback').onclick=()=>{dropWs();inRoom=false;creating=false;applyPal('classic');curPal='classic';view('lobby')};
+$('sback').onclick=()=>{dropWs();inRoom=false;creating=false;curPal=themePal;applyPal(themePal);view('lobby')};
 $('join').onclick=()=>enter($('code').value,false);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value,false)};
-$('local').onclick=()=>{dropWs();inRoom=false;role='both';seq=0;curPal='classic';applyPal('classic');init();view('game');render()};
+$('local').onclick=()=>{dropWs();inRoom=false;role='both';seq=0;curPal=themePal;applyPal(themePal);init();view('game');render()};
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=openNG;
 $('wnew').onclick=openNG;
 $('wview').onclick=()=>{dismissed=true;render()};
 $('nstart').onclick=()=>{
   if(role=='G'||role=='S')return;
-  curPal=pick;applyPal(curPal);$('ng').classList.add('hide');init();endMove(true);
+  curPal=themePal=pick;saveTheme();applyPal(curPal);$('ng').classList.add('hide');init();endMove(true);
 };
 $('ncancel').onclick=closeNG;
-document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('ng').classList.contains('hide'))closeNG()});
+$('mode').onclick=openTheme;
+$('tdone').onclick=closeTheme;
+document.querySelectorAll('#tmode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m,true));
+document.addEventListener('keydown',e=>{if(e.key!='Escape')return;if(!$('th').classList.contains('hide'))closeTheme();else if(!$('ng').classList.contains('hide'))closeNG()});
 $('leave').onclick=leave;
 (()=>{const h=$('title');h.textContent='';[...'Kijutsu'].forEach((c,i)=>{const e=document.createElement('span');e.className='ch';e.setAttribute('aria-hidden','true');e.style.setProperty('--i',i);e.textContent=c==' '?'\u00a0':c;h.appendChild(e)})})();
 </script>
