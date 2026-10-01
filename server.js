@@ -6,7 +6,10 @@ const PORT = process.env.PORT || 3000;
 // Only these files are served; every other path returns the game page.
 const FILES = {
   '/cat.png': ['cat.png', 'image/png'],
-  '/secret.ogg': ['secret.ogg', 'audio/ogg']
+  '/secret.ogg': ['secret.ogg', 'audio/ogg'],
+  '/move.ogg': ['move.ogg', 'audio/ogg'],
+  '/take.ogg': ['take.ogg', 'audio/ogg'],
+  '/win.ogg': ['win.ogg', 'audio/ogg']
 };
 const srv = http.createServer((req, res) => {
   const f = FILES[req.url.split('?')[0]] || ['index.html', 'text/html; charset=utf-8'];
