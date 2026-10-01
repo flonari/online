@@ -75,7 +75,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.04</p>
+  <p class="sub">v1.05</p>
   <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
@@ -125,6 +125,8 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.05<span>Oct 1, 2026</span></h3>
+<ul><li>Added sounds: moving a wizard, capturing, and winning each play their own sound.</li></ul>
 <h3>v1.04<span>Oct 1, 2026</span></h3>
 <ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
 <li>The palette you pick in Create room is saved as your theme.</li>
@@ -175,6 +177,9 @@ let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
 let curPal='classic',pick='classic',anim=null;
 const $=id=>document.getElementById(id);
+const SFX={};
+['move','take','win'].forEach(n=>{const a=new Audio('/'+n+'.ogg');a.preload='auto';SFX[n]=a});
+function sfx(n){const a=SFX[n];if(!a)return;try{a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
 
 // palettes: name, light set, dark set. Each set: bg card fg light-tile dark-tile muted line highlight
 const PK=['--bg','--card','--fg','--l','--d','--mut','--line','--hl'];
@@ -271,6 +276,7 @@ function endMove(reset){
     sel=null;placing=false;
     if(C[p]>=3){over=true;note=NAME[p]+' wins with 3 captures!'}
     else{turn=opp(p);begin()}
+    sfx(C[p]>=3?'win':dead.length?'take':'move');
   }
   seq++;render();push(reset);
 }
@@ -304,15 +310,17 @@ function playAnim(cells,a){
   const hl=getComputedStyle(document.documentElement).getPropertyValue('--hl').trim()||'#c8f06a';
   to.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'});
 }
-function apply(d,force){
+function apply(d,force,quiet){
   const ok=d&&Number.isInteger(d.seq)&&Array.isArray(d.B)&&d.B.length==25&&d.B.every(v=>v===null||v==='Y'||v==='G')&&
     Array.isArray(d.X)&&d.X.length==25&&d.R&&d.C&&(d.turn=='Y'||d.turn=='G');
   if(!ok||(!force&&d.seq<=seq))return;
-  const old=B.slice();
+  const old=B.slice(),oldC=C?C.Y+C.G:0,oldOver=over;
   seq=d.seq;B=d.B;X=d.X.map(Boolean);R={Y:+d.R.Y||0,G:+d.R.G||0};C={Y:+d.C.Y||0,G:+d.C.G||0};
   turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;
   if(typeof d.pal=='string'&&PALS[d.pal]&&d.pal!==curPal){curPal=d.pal;applyPal(curPal)}
-  if(!reduce&&!force){const mv=diffMove(old,B);if(mv)anim=mv}
+  const mv=force?null:diffMove(old,B);
+  if(mv&&!reduce)anim=mv;
+  if(mv&&!quiet)sfx(over&&!oldOver&&(C.Y>=3||C.G>=3)?'win':C.Y+C.G>oldC?'take':'move');
   render();
 }
 const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
@@ -380,7 +388,7 @@ function connect(){
     let m;try{m=JSON.parse(e.data)}catch(x){return}
     if(m.t=='hello'){
       creating=false;role=m.role;peers=m.peers;live=true;
-      if(m.state)apply(m.state);
+      if(m.state)apply(m.state,false,true);
       else if(role!='S'&&(role=='Y'||seq>0)){seq=Math.max(seq,1);push(true)}
       view('game');render();
     }else if(m.t=='state')apply(m.state,m.force);
