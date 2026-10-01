@@ -45,7 +45,7 @@ wss.on('connection', ws => {
       const exists = rooms.has(m.code);
       if (m.t === 'create' && exists) return send(ws, { t: 'err', msg: 'That room code is already taken.' });
       if (m.t === 'join' && !exists) return send(ws, { t: 'err', msg: 'Room not found. Check the code, or create a room.' });
-      if (!exists && rooms.size >= 500) return send(ws, { t: 'err', msg: 'The server is full, try again later.' });
+      if (!exists && rooms.size >= 99) return send(ws, { t: 'err', msg: 'The server is full, try again later.' });
       const r = getRoom(m.code);
       clearTimeout(r.timer);
       const taken = [...r.socks].map(s => s.role);
