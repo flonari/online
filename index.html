@@ -77,7 +77,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.45</p>
+  <p class="sub">v1.045</p>
   <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
@@ -161,14 +161,6 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 </main>
 
 <div id="spec" class="hide" role="status"></div>
-
-<div id="ng" class="ov hide" role="dialog" aria-modal="true" aria-label="New game">
-  <div class="wc">
-    <h2>New game</h2>
-    <p class="hint" id="nhint">Start a new game?</p>
-    <div class="row"><button class="a primary" id="nstart">Start</button><button class="a" id="ncancel">Cancel</button></div>
-  </div>
-</div>
 
 <div id="th" class="ov hide" role="dialog" aria-modal="true" aria-label="Theme">
   <div class="wc">
@@ -415,7 +407,7 @@ function dropWs(){const s=ws;ws=null;if(s)try{s.close()}catch(e){}}
 function fail(msg){
   const was=creating;
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
-  $('ng').classList.add('hide');$('spec').classList.add('hide');
+  $('spec').classList.add('hide');
   if(was){applyPc(themePc);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby');$('lerr').textContent=msg}
 }
@@ -457,7 +449,7 @@ function enter(c,create){
 function leave(){
   dropWs();inRoom=false;live=false;creating=false;role='both';rnd=false;
   curPal=themePal;applyPal(themePal);applyPc(themePc);
-  $('ng').classList.add('hide');$('spec').classList.add('hide');
+  $('spec').classList.add('hide');
   view('lobby');$('lerr').textContent='';
 }
 function randomise(){
@@ -465,12 +457,11 @@ function randomise(){
   curPal=pals[Math.random()*pals.length|0];applyPal(curPal);
   applyPc(pcs[Math.random()*pcs.length|0]);
 }
-function openNG(){
+function newGame(){
   if(role=='G'||role=='S')return;
-  $('nhint').textContent=rnd?'Start a new game? The palette and pawn colors will be randomised.':'Start a new game?';
-  $('ng').classList.remove('hide');$('nstart').focus();
+  if(rnd)randomise();
+  init();endMove(true);
 }
-function closeNG(){applyPal(curPal);$('ng').classList.add('hide')}
 $('create').onclick=()=>{
   pick=themePal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
   pickPc=themePc;$('spcn').textContent=pcName(pickPc);drawPc($('spc'),pickPc,setupPcCb);
@@ -484,19 +475,13 @@ $('join').onclick=()=>enter($('code').value,false);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value,false)};
 $('local').onclick=()=>{dropWs();inRoom=false;rnd=false;role='both';seq=0;curPal=themePal;applyPal(themePal);applyPc(themePc);init();view('game');render()};
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
-$('reset').onclick=openNG;
-$('wnew').onclick=openNG;
+$('reset').onclick=newGame;
+$('wnew').onclick=newGame;
 $('wview').onclick=()=>{dismissed=true;render()};
-$('nstart').onclick=()=>{
-  if(role=='G'||role=='S')return;
-  if(rnd)randomise();
-  $('ng').classList.add('hide');init();endMove(true);
-};
-$('ncancel').onclick=closeNG;
 $('mode').onclick=openTheme;
 $('tdone').onclick=closeTheme;
 document.querySelectorAll('#tmode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m,true));
-document.addEventListener('keydown',e=>{if(e.key!='Escape')return;if(!$('th').classList.contains('hide'))closeTheme();else if(!$('ng').classList.contains('hide'))closeNG()});
+document.addEventListener('keydown',e=>{if(e.key!='Escape')return;if(!$('th').classList.contains('hide'))closeTheme();});
 $('leave').onclick=leave;
 (()=>{const h=$('title');h.textContent='';[...'Kijutsu'].forEach((c,i)=>{const e=document.createElement('span');e.className='ch';e.setAttribute('aria-hidden','true');e.style.setProperty('--i',i);e.textContent=c==' '?'\u00a0':c;h.appendChild(e)})})();
 </script>
