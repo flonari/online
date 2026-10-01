@@ -56,6 +56,8 @@ button.a:hover:not(:disabled){background:var(--line)}
 button.a.primary{background:var(--fg);color:var(--bg)}
 button.a.primary:hover:not(:disabled){background:var(--d);color:#fff}
 button.a:disabled{opacity:.35;cursor:default}
+label.ck{display:flex;gap:8px;align-items:center;cursor:pointer}
+input[type=checkbox]{width:auto;padding:0;accent-color:var(--fg);letter-spacing:0;cursor:pointer;width:18px;height:18px}
 button:focus-visible,input:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
 input{font:inherit;padding:8px 12px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);width:9em;text-align:center;letter-spacing:.2em}
 .hide{display:none!important}
@@ -101,6 +103,8 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   <h2>Pawn colors</h2>
   <div class="row" id="spc"></div>
   <p class="hint" id="spcn"></p>
+  <label class="ck"><input type="checkbox" id="srnd"> Randomise</label>
+  <p class="hint">Every new game in this room gets a random palette and random pawn colors.</p>
   <p id="serr" role="status"></p>
   <div class="row"><button class="a primary" id="sstart">Start room</button><button class="a" id="sback">Back</button></div>
 </section>
@@ -128,18 +132,18 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Capture 3 enemy wizards to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
-<h3>v1.045<span>Oct 1, 2026</span></h3>
-<ul><li>Added sounds</li></ul>
-<ul><li>Uncluttered the in game screen</li></ul>
-<ul><li>Added Pawn Color Options</li></ul>
+<h3>v1.05<span>Oct 1, 2026</span></h3>
+<ul><li>Host picks the colors of pawns aswell.</li>
+<li>The Theme button is hidden while in a game.</li>
+<li>New game no longer asks for a palette.</li></ul>
 <h3>v1.04<span>Oct 1, 2026</span></h3>
-<ul><li>The theme button has a purpose.</li>
+<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
 <li>The palette you pick in Create room is saved as your theme.</li>
 <li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
 <h3>v1.03<span>Oct 1, 2026</span></h3>
 <ul><li>Every palette now has a light and a dark version.</li>
-<li>Added a Theme button under the title to switch between Auto, Light and Dark.</li></ul>
-<ul><li>Spectator Counter Pod</li>
+<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
+<ul><li>Spectator count is shown in the bottom left during online games.</li>
 <li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
 <li>Create room menu: pick a custom or random room code and a color palette.</li>
 <h3>v1.02<span>Sep 30, 2026</span></h3>
@@ -160,8 +164,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <div id="ng" class="ov hide" role="dialog" aria-modal="true" aria-label="New game">
   <div class="wc">
     <h2>New game</h2>
-    <p class="hint">Pick a palette for the next round.</p>
-    <div class="row" id="npal"></div>
+    <p class="hint" id="nhint">Start a new game?</p>
     <div class="row"><button class="a primary" id="nstart">Start</button><button class="a" id="ncancel">Cancel</button></div>
   </div>
 </div>
@@ -180,7 +183,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
 let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
-let curPal='classic',pick='classic',anim=null;
+let curPal='classic',pick='classic',anim=null,rnd=false;
 const $=id=>document.getElementById(id);
 const SFX={};
 ['move','take','win'].forEach(n=>{const a=new Audio('/'+n+'.ogg');a.preload='auto';SFX[n]=a});
@@ -255,7 +258,7 @@ function setMode(m,save){
   document.querySelectorAll('#tmode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==m));
   if(save)saveTheme();
   applyPal(shownPal);
-  ['spal','npal','tpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb)});
+  ['spal','tpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb)});
 }
 mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
 (()=>{const t=(rc('kj-theme')||'').split('|');
@@ -265,7 +268,6 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc)})();
 const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
 const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id)};
-const ngCb=id=>{pick=id;applyPal(id)};
 function openTheme(){
   $('tpwrap').classList.toggle('hide',inRoom);
  $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
@@ -411,7 +413,7 @@ function render(){
 function dropWs(){const s=ws;ws=null;if(s)try{s.close()}catch(e){}}
 function fail(msg){
   const was=creating;
-  dropWs();inRoom=false;live=false;creating=false;
+  dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('ng').classList.add('hide');$('spec').classList.add('hide');
   if(was){applyPc(themePc);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby');$('lerr').textContent=msg}
@@ -447,18 +449,25 @@ function enter(c,create){
   err.textContent='Connecting...';
   dropWs();
   code=c;creating=!!create;inRoom=true;role='Y';seq=0;peers={Y:false,G:false,S:0};
+  rnd=!!create&&$('srnd').checked;
   if(create){curPal=themePal=pick;themePc=pickPc;applyPc(themePc);saveTheme()}
   init();connect();
 }
 function leave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';
+  dropWs();inRoom=false;live=false;creating=false;role='both';rnd=false;
   curPal=themePal;applyPal(themePal);applyPc(themePc);
   $('ng').classList.add('hide');$('spec').classList.add('hide');
   view('lobby');$('lerr').textContent='';
 }
+function randomise(){
+  const pals=Object.keys(PALS).filter(k=>k!==curPal),pcs=Object.keys(PCS).filter(k=>k!==curPc);
+  curPal=pals[Math.random()*pals.length|0];applyPal(curPal);
+  applyPc(pcs[Math.random()*pcs.length|0]);
+}
 function openNG(){
   if(role=='G'||role=='S')return;
-  pick=curPal;drawPal($('npal'),pick,ngCb);$('ng').classList.remove('hide');$('nstart').focus();
+  $('nhint').textContent=rnd?'Start a new game? The palette and pawn colors will be randomised.':'Start a new game?';
+  $('ng').classList.remove('hide');$('nstart').focus();
 }
 function closeNG(){applyPal(curPal);$('ng').classList.add('hide')}
 $('create').onclick=()=>{
@@ -472,14 +481,15 @@ $('scode').onkeydown=e=>{if(e.key=='Enter')enter($('scode').value,true)};
 $('sback').onclick=()=>{dropWs();inRoom=false;creating=false;curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby')};
 $('join').onclick=()=>enter($('code').value,false);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value,false)};
-$('local').onclick=()=>{dropWs();inRoom=false;role='both';seq=0;curPal=themePal;applyPal(themePal);applyPc(themePc);init();view('game');render()};
+$('local').onclick=()=>{dropWs();inRoom=false;rnd=false;role='both';seq=0;curPal=themePal;applyPal(themePal);applyPc(themePc);init();view('game');render()};
 $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=openNG;
 $('wnew').onclick=openNG;
 $('wview').onclick=()=>{dismissed=true;render()};
 $('nstart').onclick=()=>{
   if(role=='G'||role=='S')return;
-  curPal=themePal=pick;saveTheme();applyPal(curPal);$('ng').classList.add('hide');init();endMove(true);
+  if(rnd)randomise();
+  $('ng').classList.add('hide');init();endMove(true);
 };
 $('ncancel').onclick=closeNG;
 $('mode').onclick=openTheme;
