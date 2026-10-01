@@ -313,8 +313,8 @@ function endMove(reset){
 const canAct=()=>!over&&(role=='both'||(role==turn&&live));
 function click(i){
   if(!canAct())return;
-  if(placing){if(places(turn).includes(i)){if(role=='both')anim={to:i,place:true};B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
-  if(sel!==null&&moves(sel).includes(i)){if(role=='both')anim={from:sel,to:i};B[i]=turn;X[i]=true;B[sel]=null;X[sel]=false;note='';endMove();return}
+  if(placing){if(places(turn).includes(i)){anim={to:i,place:true};B[i]=turn;X[i]=true;R[turn]--;note='';endMove()}return}
+  if(sel!==null&&moves(sel).includes(i)){anim={from:sel,to:i};B[i]=turn;X[i]=true;B[sel]=null;X[sel]=false;note='';endMove();return}
   if(B[i]==turn&&!X[i]){sel=sel===i?null:i}else sel=null;
   render();
 }
