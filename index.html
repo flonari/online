@@ -84,7 +84,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 .gi svg{width:78%;height:78%}
 .gt{display:block;font-size:1.2rem;font-weight:bold;letter-spacing:.06em}
 .gd{display:block;font-size:.85rem;color:var(--mut)}
-/* flow.state 100 background */
+/* flow.state background */
 #flowbg{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none;user-select:none;display:flex;flex-direction:column;justify-content:space-around}
 .fr{display:flex;width:max-content;white-space:pre;font-size:3.4rem;line-height:1.2;font-weight:bold;letter-spacing:.05em;color:var(--fg);opacity:.07;animation:flow var(--dur,50s) linear infinite}
 .fr.rev{animation-direction:reverse}
@@ -113,7 +113,8 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.07</p>
+  <p class="sub">v1.08</p>
+  <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
 <section id="lobby" class="card hide">
@@ -174,6 +175,9 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card hide" id="rules"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
 <details class="card patch hide" id="patch"><summary>Patch notes</summary>
+<h3>v1.08<span>Oct 2, 2026</span></h3>
+<ul><li>New game hub: the site opens on flow.state with a list of games. Pick Kijutsu to play, and use "All games" to come back.</li>
+<li>The hub has a slowly drifting "flow.state" text background.</li>
 <h3>v1.07<span>Oct 2, 2026</span></h3>
 <ul><li>Create room now has a Pawn shape option: Wizard, Pawn or Hat. It only changes the look, and everyone in the room sees it.</li></ul>
 <h3>v1.06<span>Oct 1, 2026</span></h3>
