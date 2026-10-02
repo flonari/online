@@ -24,7 +24,9 @@ h2{font-size:1.1rem;margin:0}
 .hint{margin:0;color:var(--mut);font-size:.85rem}
 #lerr,#serr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
 .sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--fg);padding:0;cursor:pointer}
-.sw[aria-pressed=true]{outline:3px solid var(--hl);outline-offset:2px}
+.sw[aria-pressed=true],.shp[aria-pressed=true]{outline:3px solid var(--hl);outline-offset:2px}
+.shp{width:44px;height:44px;border-radius:10px;border:2px solid var(--fg);background:var(--card);padding:4px;cursor:pointer;display:flex}
+.shp svg{width:100%;height:100%}
 #game{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
 #stat{align-self:center;padding:3px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;text-align:center}
 #spec{position:fixed;left:12px;bottom:12px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;box-shadow:var(--shadow);z-index:10}
@@ -77,7 +79,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <main class="wrap">
 <header>
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.06</p>
+  <p class="sub">v1.07</p>
   <button class="a mode" id="mode" type="button">Theme</button>
 </header>
 
@@ -106,6 +108,9 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
   <h2>Pawn colors</h2>
   <div class="row" id="spc"></div>
   <p class="hint" id="spcn"></p>
+  <h2>Pawn shape</h2>
+  <div class="row" id="ssh"></div>
+  <p class="hint">Only changes how the pawns look. Both sides use the same shape.</p>
   <label class="ck"><input type="checkbox" id="srnd"> Randomise</label>
   <p class="hint">Every new game in this room gets a random palette and random pawn colors.</p>
   <p id="serr" role="status"></p>
@@ -135,18 +140,22 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
 <details class="card patch" id="patch"><summary>Patch notes</summary>
+<h3>v1.07<span>Oct 2, 2026</span></h3>
+<ul><li>Create room now has a Pawn shape option: Wizard, Pawn or Hat. It only changes the look, and everyone in the room sees it.</li></ul>
 <h3>v1.06<span>Oct 1, 2026</span></h3>
 <ul><li>Play against a bot on Easy, Normal or Hard.</li>
 <li>Pawn color pairs, plus a Randomise option for the palette and pawn colors.</li>
 <li>Sounds for moves, captures and wins.</li>
+<li>New win rule: reduce your opponent to 2 wizards on the board.</li>
 <li>Fixed a crash that stopped the board from showing in some screens.</li></ul>
-<h3>v1.045<span>Oct 1, 2026</span></h3>
+<h3>v1.05<span>Oct 1, 2026</span></h3>
+<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
 <li>The palette you pick in Create room is saved as your theme.</li>
 <li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
 <h3>v1.04<span>Oct 1, 2026</span></h3>
 <ul><li>Every palette now has a light and a dark version.</li>
 <li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
-<h3>v1.03<span>Sep 30, 2026</span></h3>
+<h3>v1.03<span>Oct 1, 2026</span></h3>
 <ul><li>Spectator count is shown in the bottom left during online games.</li>
 <li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
 <li>Create room menu: pick a custom or random room code and a color palette.</li>
@@ -155,11 +164,11 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <ul><li>Added a win screen.</li>
 <li>Reserve wizards are now shown as balls at the sides of the board.</li>
 <li>Added a Header Animation.</li></ul>
-<h3>v1.01<span>Sep 29, 2026</span></h3>
+<h3>v1.01<span>Sep 30, 2026</span></h3>
 <ul><li>Added these patch notes.</li>
 <li>Now only the host can restart or create a new game.</li>
 <li>Patch notes are hidden while in a game.</li></ul>
-<h3>v1.0<span>Sep 28, 2026</span></h3>
+<h3>v1.0<span>Sep 29, 2026</span></h3>
 <ul><li>initial release</li></ul>
 </details>
 </main>
@@ -206,6 +215,24 @@ const PCS={
   mono:['White','#f4f1ec','Black','#4a4a55'],
   sky:['Cyan','#6fd3e8','Crimson','#b8334a']
 };
+const SHAPES={
+  wizard:['Wizard','<circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/>'],
+  pawn:['Pawn','<circle cx="12" cy="7" r="4"/><path d="M9.5 11.5h5l1.5 5h2.5v3h-13v-3H8z"/>'],
+  hat:['Hat','<path d="M12 2.5l6 14H6z"/><path d="M3 18.5h18v2.5H3z"/>']
+};
+const shapeSVG=(fill,id,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${fill}" stroke="#2b1d1d" stroke-width=".8">${SHAPES[id][1]}</g></svg>`;
+let themeSh='wizard',curSh='wizard',pickSh='wizard';
+function applySh(id){curSh=SHAPES[id]?id:'wizard'}
+function drawSh(el,cur,cb){
+  el.innerHTML='';
+  Object.entries(SHAPES).forEach(([id,v])=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='shp';b.title=v[0];b.setAttribute('aria-label',v[0]+' pawn shape');
+    b.setAttribute('aria-pressed',id==cur);b.innerHTML=shapeSVG(PCS[pickPc][1],id);
+    b.onclick=()=>{cb(id);drawSh(el,id,cb)};
+    el.appendChild(b);
+  });
+}
 let themePc='classic',curPc='classic',pickPc='classic';
 function applyPc(id){
   if(!PCS[id])id='classic';
@@ -230,7 +257,7 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
 const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
-const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc)};
+const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh)};
 function applyPal(id){
   if(!PALS[id])id='classic';
   shownPal=id;
@@ -262,9 +289,11 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   if(PALS[t[0]])themePal=t[0];
   if(['auto','light','dark'].includes(t[1]))mode=t[1];
   curPal=pick=shownPal=themePal;setMode(mode);
-  const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc)})();
+  const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc);
+  const sh=rc('kj-shape');if(SHAPES[sh])themeSh=pickSh=sh;applySh(themeSh)})();
 const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
-const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id)};
+const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),pickSh,setupShCb)};
+const setupShCb=id=>{pickSh=id};
 function openTheme(){
   $('tpwrap').classList.toggle('hide',inRoom);
  $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
@@ -452,7 +481,7 @@ function click(i){
   render();
 }
 function send(m){if(ws&&ws.readyState==1)ws.send(JSON.stringify(m))}
-function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note,pal:curPal,pc:curPc}})}
+function push(reset){if(inRoom)send({t:'state',reset:!!reset,state:{seq,B,X,R,C,turn,over,note,pal:curPal,pc:curPc,sh:curSh}})}
 function diffMove(o,n){
   const add=[],gone=[];
   for(let i=0;i<25;i++){if(!o[i]&&n[i])add.push(i);else if(o[i]&&!n[i])gone.push(i)}
@@ -482,12 +511,13 @@ function apply(d,force,quiet){
   turn=d.turn;over=!!d.over;note=String(d.note||'').slice(0,200);sel=null;placing=false;
   if(typeof d.pal=='string'&&PALS[d.pal]&&d.pal!==curPal){curPal=d.pal;applyPal(curPal)}
   if(typeof d.pc=='string'&&PCS[d.pc]&&d.pc!==curPc)applyPc(d.pc);
+  if(typeof d.sh=='string'&&SHAPES[d.sh])curSh=d.sh;
   const mv=force?null:diffMove(old,B);
   if(mv&&!reduce&&!quiet)anim=mv;
   if(mv&&!quiet)sfx(over&&!oldOver&&winner()?'win':C.Y+C.G>oldC?'take':'move');
   render();
 }
-const meeple=(c,x)=>`<svg viewBox="0 0 24 24" class="${x?'x':''}"><g fill="${COL[c]}" stroke="#2b1d1d" stroke-width=".8"><circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/></g></svg>`;
+const meeple=(c,x)=>shapeSVG(COL[c],curSh,x);
 function render(){
   const fl=role=='Y'||!!botLevel,me=p=>role==p||(!!botLevel&&p=='Y');
   const tg=!canAct()?[]:placing?places(turn):sel!==null?moves(sel):[];
@@ -543,8 +573,8 @@ function fail(msg){
   const was=creating;
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
-  if(was){applyPc(themePc);view('setup');$('serr').textContent=msg}
-  else{curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby');$('lerr').textContent=msg}
+  if(was){applyPc(themePc);applySh(themeSh);view('setup');$('serr').textContent=msg}
+  else{curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby');$('lerr').textContent=msg}
 }
 function connect(){
   const s=ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
@@ -579,12 +609,12 @@ function enter(c,create){
   botLevel=null;clearTimeout(botTimer);
   code=c;creating=!!create;inRoom=true;role='Y';seq=0;peers={Y:false,G:false,S:0};
   rnd=!!create&&$('srnd').checked;
-  if(create){curPal=themePal=pick;themePc=pickPc;applyPc(themePc);saveTheme()}
+  if(create){curPal=themePal=pick;themePc=pickPc;themeSh=pickSh;applyPc(themePc);applySh(themeSh);saveTheme()}
   init();connect();
 }
 function leave(){
   dropWs();inRoom=false;live=false;creating=false;role='both';rnd=false;botLevel=null;clearTimeout(botTimer);
-  curPal=themePal;applyPal(themePal);applyPc(themePc);
+  curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);
   $('spec').classList.add('hide');
   view('lobby');$('lerr').textContent='';
 }
@@ -601,19 +631,19 @@ function newGame(){
 }
 $('create').onclick=()=>{
   pick=themePal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
-  pickPc=themePc;$('spcn').textContent=pcName(pickPc);drawPc($('spc'),pickPc,setupPcCb);
+  pickPc=themePc;pickSh=themeSh;$('spcn').textContent=pcName(pickPc);drawPc($('spc'),pickPc,setupPcCb);drawSh($('ssh'),pickSh,setupShCb);
   drawPal($('spal'),pick,setupCb);view('setup');
 };
 $('srand').onclick=()=>{$('scode').value=rand()};
 $('sstart').onclick=()=>enter($('scode').value,true);
 $('scode').onkeydown=e=>{if(e.key=='Enter')enter($('scode').value,true)};
-$('sback').onclick=()=>{dropWs();inRoom=false;creating=false;curPal=themePal;applyPal(themePal);applyPc(themePc);view('lobby')};
+$('sback').onclick=()=>{dropWs();inRoom=false;creating=false;curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby')};
 $('join').onclick=()=>enter($('code').value,false);
 $('code').onkeydown=e=>{if(e.key=='Enter')enter($('code').value,false)};
 function startLocal(level){
   dropWs();inRoom=false;clearTimeout(botTimer);
   botLevel=level||null;rnd=!!level;role='both';seq=0;
-  curPal=themePal;applyPal(themePal);applyPc(themePc);
+  curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);
   if(level)randomise();
   init();view('game');render();
 }
