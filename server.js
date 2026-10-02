@@ -36,7 +36,10 @@ const send = (s, m) => { if (s.readyState === 1) s.send(JSON.stringify(m)); };
 const bc = (r, m, except) => { for (const s of r.socks) if (s !== except) send(s, m); };
 const okState = st => st && Number.isInteger(st.seq) && st.seq >= 0 &&
   Array.isArray(st.B) && st.B.length === 25 && st.B.every(v => v === null || v === 'Y' || v === 'G') &&
-  Array.isArray(st.X) && st.X.length === 25 && st.R && st.C && (st.turn === 'Y' || st.turn === 'G');
+  (st.turn === 'Y' || st.turn === 'G') &&
+  (st.game === 'elder'
+    ? Array.isArray(st.E) && st.E.length === 25
+    : Array.isArray(st.X) && st.X.length === 25 && st.R && st.C);
 
 wss.on('connection', ws => {
   ws.alive = true; ws.room = null; ws.role = null;
@@ -45,20 +48,23 @@ wss.on('connection', ws => {
     let m; try { m = JSON.parse(raw); } catch { return; }
     if ((m.t === 'join' || m.t === 'create') && !ws.room) {
       if (typeof m.code !== 'string' || !/^[a-z0-9]{3,12}$/.test(m.code)) return send(ws, { t: 'err', msg: 'Bad room code. Use 3 to 12 letters or digits.' });
+      const game = m.game === 'elder' ? 'elder' : 'kij';
       const exists = rooms.has(m.code);
       if (m.t === 'create' && exists) return send(ws, { t: 'err', msg: 'That room code is already taken.' });
       if (m.t === 'join' && !exists) return send(ws, { t: 'err', msg: 'Room not found. Check the code, or create a room.' });
       if (!exists && rooms.size >= 99) return send(ws, { t: 'err', msg: 'The server is full, try again later.' });
+      if (m.t === 'join' && rooms.get(m.code).game !== game) return send(ws, { t: 'err', msg: 'That room is for a different game.' });
       const r = getRoom(m.code);
+      if (!exists) r.game = game;
       clearTimeout(r.timer);
       const taken = [...r.socks].map(s => s.role);
       ws.role = ['Y', 'G'].find(x => !taken.includes(x)) || 'S';
       ws.room = r; ws.code = m.code; r.socks.add(ws);
-      send(ws, { t: 'hello', role: ws.role, state: r.state, peers: peers(r) });
+      send(ws, { t: 'hello', role: ws.role, state: r.state, peers: peers(r), game: r.game });
       bc(r, { t: 'peers', peers: peers(r) }, ws);
     } else if (m.t === 'state' && ws.room && ws.role !== 'S') {
       const r = ws.room, st = m.state;
-      const ok = okState(st) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
+      const ok = okState(st) && ((st.game === 'elder') === (r.game === 'elder')) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
       if (ok) { r.state = st; bc(r, { t: 'state', state: st }, ws); }
       else if (r.state) send(ws, { t: 'state', state: r.state, force: true });
     }
