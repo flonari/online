@@ -43,8 +43,8 @@ h2{font-size:1.1rem;margin:0}
 #board{display:grid;grid-template-columns:repeat(5,1fr);width:100%;aspect-ratio:1;border:5px solid var(--d);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
 .c{position:relative;border:0;padding:0;cursor:pointer;background:var(--l)}
 .c.dk{background:var(--d)}
-.c.sel{outline:4px solid #fff;outline-offset:-4px}
-.c.t::after{content:"";position:absolute;inset:8%;border:3px solid var(--hl);border-radius:4px}
+.c.sel{outline:4px solid var(--ph,#fff);outline-offset:-4px}
+.c.t::after{content:"";position:absolute;inset:8%;border:3px solid var(--ph,var(--hl));border-radius:4px}
 .c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
 .c svg.x{transform:rotate(90deg)}
 #win{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
@@ -73,7 +73,7 @@ details.patch[open] summary{margin-bottom:0}
 h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-delay:calc(var(--i)*-.14s)}
 @keyframes wave{0%{transform:translateY(0)}12.5%{transform:translateY(-1px)}25%{transform:translateY(-2px)}37.5%{transform:translateY(-1px)}50%{transform:translateY(0)}62.5%{transform:translateY(1px)}75%{transform:translateY(2px)}87.5%{transform:translateY(1px)}}
 /* game hub */
-#hub{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+#hub{width:100%;min-height:calc(100vh - 48px);justify-content:center;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
 #hub h1{font-size:2.2rem;letter-spacing:.04em}
 .games{width:100%;display:flex;flex-direction:column;gap:12px}
 .gc{display:flex;align-items:center;gap:14px;width:100%;text-align:left;font:inherit;color:var(--fg);background:var(--card);border:2px solid var(--fg);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
@@ -113,8 +113,7 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.08</p>
-  <button class="a mode" id="mode" type="button">Theme</button>
+  <p class="sub">v1.10</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -175,9 +174,14 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 <details class="card hide" id="rules"><summary>Rules</summary>
 <p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
 <details class="card patch hide" id="patch"><summary>Patch notes</summary>
+<h3>v1.10<span>Oct 2, 2026</span></h3>
+<ul><li>Removed the Theme button inside Kijutsu. Theme settings are now only on the game picker.</li></ul>
+<h3>v1.09<span>Oct 2, 2026</span></h3>
+<ul><li>Move highlights, the selected pawn ring and the active player's panel now use the color of the pawns.</li>
+<li>Bug fixes.</li></ul>
 <h3>v1.08<span>Oct 2, 2026</span></h3>
 <ul><li>New game hub: the site opens on flow.state with a list of games. Pick Kijutsu to play, and use "All games" to come back.</li>
-<li>The hub has a slowly drifting "flow.state" text background.</li>
+<li>The hub has a slowly drifting "flow.state" text background.</li></ul>
 <h3>v1.07<span>Oct 2, 2026</span></h3>
 <ul><li>Create room now has a Pawn shape option: Wizard, Pawn or Hat. It only changes the look, and everyone in the room sees it.</li></ul>
 <h3>v1.06<span>Oct 1, 2026</span></h3>
@@ -334,7 +338,7 @@ const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),
 const setupShCb=id=>{pickSh=id};
 function openTheme(){
   $('tpwrap').classList.toggle('hide',inRoom);
- $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
+  $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
   if(!inRoom)drawPal($('tpal'),themePal,id=>{themePal=curPal=pick=id;applyPal(id);saveTheme()});
   $('th').classList.remove('hide');$('tdone').focus();
 }
@@ -345,7 +349,7 @@ function view(v){
   $('flowbg').classList.toggle('hide',v!='hub');
   $('patch').classList.toggle('hide',v=='game'||v=='hub');
   $('rules').classList.toggle('hide',v=='hub');
-  $('mode').classList.toggle('hide',v=='game');
+  document.title=v=='hub'?'flow.state':'Kijutsu';
 }
 const rand=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<5;i++)s+=a[Math.random()*a.length|0];return s};
 
@@ -562,6 +566,7 @@ function render(){
   const fl=role=='Y'||!!botLevel,me=p=>role==p||(!!botLevel&&p=='Y');
   const tg=!canAct()?[]:placing?places(turn):sel!==null?moves(sel):[];
   const el=$('board');el.innerHTML='';const cells=[];
+  el.style.setProperty('--ph',COL[turn]);
   for(let k=0;k<25;k++){
     const i=fl?24-k:k,v=B[i],b=document.createElement('button');
     b.className='c'+(((i/N|0)+i%N)%2?' dk':'')+(sel===i?' sel':'')+(tg.includes(i)?' t':'');
@@ -571,7 +576,7 @@ function render(){
   }
   const a=anim;anim=null;if(a&&!reduce&&cells[a.to])playAnim(cells,a);
   ['Y','G'].forEach(p=>{
-    const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');
+    const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');d.style.borderColor=turn==p&&!over?COL[p]:'';
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
@@ -695,7 +700,6 @@ $('place').onclick=()=>{placing=!placing;sel=null;render()};
 $('reset').onclick=newGame;
 $('wnew').onclick=newGame;
 $('wview').onclick=()=>{dismissed=true;render()};
-$('mode').onclick=openTheme;
 $('hubmode').onclick=openTheme;
 $('tdone').onclick=closeTheme;
 document.querySelectorAll('#tmode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m,true));
