@@ -127,7 +127,7 @@ body.ed .sw{border-radius:8px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.12</p>
+  <p class="sub">v1.13</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -195,7 +195,12 @@ body.ed .sw{border-radius:8px}
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
+  <div class="or">or play against the bot</div>
+  <div class="row"><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
+  <p class="hint">Against the bot you play first and the bot plays second.</p>
   <hr>
+  <h2>Board palette</h2>
+  <div class="row" id="epal"></div>
   <h2>Pawn colors</h2>
   <div class="row" id="epc"></div>
   <p class="hint" id="epcn"></p>
@@ -223,6 +228,9 @@ body.ed .sw{border-radius:8px}
 <details class="card hide" id="erules"><summary>Rules</summary>
 <p>Each side has 3 guards and 1 Wise Elder, starting as shown on the board. On your turn move 2 different units (the very first move of the game is only 1 unit). A unit slides any number of tiles in a straight line, orthogonal or diagonal, over empty tiles only. When a unit stops next to enemy units (any of the 8 tiles around it), each of them is pushed 1 tile directly away, if that tile is empty. At the end of your turn all your units must form one orthogonally connected cluster, or you lose. A unit with no orthogonal friend at the start of your turn is lonesome and can't move that turn, so rescue it. If your Wise Elder stands on the far edge at the end of your turn and your units are connected, you win. If you can't take a full turn that ends connected, you lose.</p></details>
 <details class="card patch hide" id="patch"><summary>Patch notes</summary>
+<h3>v1.13<span>Oct 3, 2026</span></h3>
+<ul><li>Elder Dance has its own board palettes: Green (the default), Badland, Sky and Plum.</li>
+<li>Play Elder Dance against a bot on Normal or Hard.</li></ul>
 <h3>v1.12<span>Oct 3, 2026</span></h3>
 <ul><li>Elder Dance now looks much closer to Kijutsu, with only small style differences.</li>
 <li>Elder Dance has its own pawn color pairs, with Coral and Teal as the default.</li></ul>
@@ -302,6 +310,13 @@ const PALS={
   candy:P('Candy','#fbeaf2 #fff6fa #3a1f2d #e79ab9 #b4567f #8a5a70 #efcadb #fff06a','#2a1420 #381c2b #fbe3ee #b0507a #6e2a4b #d3a1b9 #55304a #fff06a'),
   sunset:P('Sunset','#fbeee0 #fff7ee #3a2214 #e3a06a #a8502c #866048 #efd2b8 #b6f26a','#231710 #311f15 #fbe9d9 #b7703f #6b3018 #c9a48a #4d3324 #b6f26a')
 };
+// Elder Dance palettes (green is its default)
+const EPALS={
+  grass:P('Green','#e8f0e0 #f5f9f0 #1d2a17 #9dbb73 #4f7234 #5f7355 #cddcbd #f2e56b','#131a10 #1d2819 #e4efdb #6f9250 #35502a #9db38e #2f4328 #f2e56b'),
+  badland:P('Badland','#f3e6d6 #fbf3e8 #3a2414 #d9a066 #9c5a2f #86654a #e6cfb0 #7fe3b0','#211610 #2f2018 #f6e6d4 #b27a47 #6a3b1e #c7a48a #4d3524 #7fe3b0'),
+  sky:P('Sky','#e4eff7 #f3f9fd #14283a #8dbbe0 #3f76a8 #55728a #c4d9ea #ffd96b','#0f1923 #172633 #dcebf7 #5b8db8 #28506f #8fb0c8 #2a4357 #ffd96b'),
+  plum:P('Plum','#efe6f3 #f9f3fc #2a1a33 #b99ad0 #6d4a8c #765f87 #d9c9e4 #c9f27a','#19111f #251830 #efe2f7 #8c6aaa #46295f #b49fc4 #3e2c4d #c9f27a')
+};
 // pawn color sets: id -> [host color name, host color, guest color name, guest color]
 const PCS={
   classic:['Yellow','#f0c987','Green','#7fae5a'],
@@ -362,29 +377,29 @@ function applyEPc(id){
 }
 const epcName=id=>EPCS[id][0]+' (host) vs '+EPCS[id][2];
 const pcName=id=>PCS[id][0]+' (host) vs '+PCS[id][2];
-let mode='auto',themePal='classic',shownPal='classic';
+let mode='auto',themePal='classic',shownPal='classic',shownMap=PALS,themeEPal='grass';
 const mq=matchMedia('(prefers-color-scheme: dark)');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
 const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
-const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc)};
-function applyPal(id){
-  if(!PALS[id])id='classic';
-  shownPal=id;
-  const d=isDark(),v=PALS[id][d?2:1],st=document.documentElement.style;
+const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc);ck('kj-epal',themeEPal)};
+function applyPal(id,map=PALS){
+  if(!map[id])id=Object.keys(map)[0];
+  shownPal=id;shownMap=map;
+  const d=isDark(),v=map[id][d?2:1],st=document.documentElement.style;
   PK.forEach((k,i)=>st.setProperty(k,v[i]));
   st.setProperty('--shadow',d?'0 4px 14px rgba(0,0,0,.4)':'0 4px 14px rgba(60,20,20,.15)');
   st.colorScheme=d?'dark':'light';
 }
-function drawPal(el,cur,cb){
-  el._cur=cur;el._cb=cb;el.innerHTML='';
-  Object.entries(PALS).forEach(([id,p])=>{
+function drawPal(el,cur,cb,map=PALS){
+  el._cur=cur;el._cb=cb;el._map=map;el.innerHTML='';
+  Object.entries(map).forEach(([id,p])=>{
     const v=p[isDark()?2:1],b=document.createElement('button');
     b.type='button';b.className='sw';b.title=p[0];b.setAttribute('aria-label',p[0]+' palette');
     b.setAttribute('aria-pressed',id==cur);
     b.style.background=`linear-gradient(135deg,${v[3]} 50%,${v[4]} 50%)`;
-    b.onclick=()=>{cb(id);drawPal(el,id,cb)};
+    b.onclick=()=>{cb(id);drawPal(el,id,cb,map)};
     el.appendChild(b);
   });
 }
@@ -392,8 +407,8 @@ function setMode(m,save){
   mode=m;
   document.querySelectorAll('#tmode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==m));
   if(save)saveTheme();
-  applyPal(shownPal);
-  ['spal','tpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb)});
+  applyPal(shownPal,shownMap);
+  ['spal','tpal','epal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb,e._map)});
 }
 mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
 (()=>{const t=(rc('kj-theme')||'').split('|');
@@ -402,7 +417,8 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   curPal=pick=shownPal=themePal;setMode(mode);
   const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc);
   const sh=rc('kj-shape');if(SHAPES[sh])themeSh=pickSh=sh;applySh(themeSh);
-  const ep=rc('kj-epawn');if(EPCS[ep])themeEPc=curEPc=ep})();
+  const ep=rc('kj-epawn');if(EPCS[ep])themeEPc=curEPc=ep;
+  const epl=rc('kj-epal');if(EPALS[epl])themeEPal=epl})();
 const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
 const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),pickSh,setupShCb)};
 const setupShCb=id=>{pickSh=id};
@@ -697,7 +713,7 @@ function fail(msg){
   const was=creating;
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
-  if(curGame=='elder'){applyEPc(themeEPc);view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
+  if(curGame=='elder'){edTheme();view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
   if(was){applyPc(themePc);applySh(themeSh);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby');$('lerr').textContent=msg}
 }
@@ -787,7 +803,7 @@ document.querySelectorAll('#tmode button').forEach(b=>b.onclick=()=>setMode(b.da
 document.addEventListener('keydown',e=>{if(e.key!='Escape')return;if(!$('th').classList.contains('hide'))closeTheme();});
 $('leave').onclick=leave;
 // game hub
-$('kij').onclick=()=>{curGame='kij';applyPc(themePc);view('lobby')};
+$('kij').onclick=()=>{curGame='kij';edUntheme();view('lobby')};
 $('hback').onclick=()=>{$('lerr').textContent='';view('hub')};
 $('kicon').innerHTML=shapeSVG('var(--y)','wizard');
 (()=>{
@@ -806,7 +822,8 @@ setTitle('Kijutsu');
 // ================= Elder Dance =================
 let curGame='kij';
 const ED={B:[],E:[],turn:'Y',left:1,moved:[],lone:[],over:false,win:null,note:'',seq:0,mvs:[]};
-let edSel=null,edAnim=null,edDismissed=false;
+let edSel=null,edAnim=null,edDismissed=false,edBot=null,edBotTimer=0,edPlan=[];
+const EDBOT='G';
 const edOrth=[[1,0],[-1,0],[0,1],[0,-1]];
 const edUnit=(fill,elder,cls)=>`<svg viewBox="0 0 24 24" class="${cls||''}"><circle cx="12" cy="12" r="9.5" fill="${fill}" stroke="#2b1d1d" stroke-width="1.4"/>${elder?'<path d="M7 15.5l-.8-6 3.6 2.7L12 7.5l2.2 4.7 3.6-2.7-.8 6z" fill="#1c2740"/>':''}</svg>`;
 function edSlides(B,i){
@@ -889,9 +906,78 @@ function edMove(f,t){
   else if(!edCanFinish(ED.B,ED.E,p,ED.left,ED.lone.concat(ED.moved)))edFinish(opp(p),NAME[p]+" can't end the turn connected and loses!");
   ED.seq++;edAnim=ED.mvs;
   sfx(ED.over&&ED.win?'win':ED.mvs.length>1?'take':'move');
-  edRender();edPush();
+  edRender();edPush();edBotSchedule();
 }
-const edCan=()=>!ED.over&&(role=='both'||(role==ED.turn&&live));
+// ---- Elder Dance bot ----
+const edLoneOn=(B,p)=>{const o=[];for(let i=0;i<25;i++){if(B[i]!==p)continue;const r=i/5|0,c=i%5;if(!edOrth.some(([dr,dc])=>{const y=r+dr,x=c+dc;return y>=0&&y<5&&x>=0&&x<5&&B[y*5+x]===p}))o.push(i)}return o};
+function edTurnsOn(B,E,p,left,locked,seq,out){
+  if(left==0){if(edConnOn(B,p))out.push({mvs:seq,B,E});return}
+  for(let i=0;i<25;i++){
+    if(B[i]!==p||locked.includes(i))continue;
+    for(const t of edSlides(B,i)){
+      const b=B.slice(),e=E.slice();edDo(b,e,p,i,t);
+      edTurnsOn(b,e,p,left-1,locked.concat(t),seq.concat([[i,t]]),out);
+    }
+  }
+}
+const edAtGoal=(B,E,p)=>{for(let i=0;i<25;i++)if(B[i]===p&&E[i])return (i/5|0)==(p=='Y'?4:0);return false};
+function edAdjCount(B,p){let n=0;for(let i=0;i<25;i++)if(B[i]===p)for(const [dr,dc] of edOrth){const y=(i/5|0)+dr,x=i%5+dc;if(y>=0&&y<5&&x>=0&&x<5&&B[y*5+x]===p)n++}return n/2}
+function edHeur(B,E,me){
+  const q=opp(me),prog=p=>{for(let i=0;i<25;i++)if(B[i]===p&&E[i]){const r=i/5|0;return p=='Y'?r:4-r}return 0};
+  return 25*(prog(me)-prog(q))+3*(edAdjCount(B,me)-edAdjCount(B,q))-8*edLoneOn(B,me).length+8*edLoneOn(B,q).length;
+}
+// value of an end-of-turn position for `me`, right after `me` finished a turn
+function edAfterMine(B,E,me){
+  const q=opp(me);
+  if(edAtGoal(B,E,me))return 10000;
+  if(!edCanFinish(B,E,q,2,edLoneOn(B,q)))return 9000;
+  return edHeur(B,E,me);
+}
+let edDeadline=0;
+function edBotChoose(level){
+  const me=EDBOT,q=opp(me),turns=[];
+  edTurnsOn(ED.B,ED.E,me,ED.left,ED.lone,[],turns);
+  if(!turns.length)return [];
+  turns.forEach(t=>{t.v=edAfterMine(t.B,t.E,me)});
+  turns.sort((a,b)=>b.v-a.v);
+  const top=turns[0].v;
+  if(top>=9000)return turns[0].mvs;
+  if(level=='normal'){
+    const near=turns.filter(t=>t.v>=top-6);
+    return near[Math.random()*near.length|0].mvs;
+  }
+  // hard: look at the opponent's best reply for the most promising turns
+  edDeadline=performance.now()+1400;
+  let best=-Infinity,pick=turns[0],ties=[];
+  for(const t of turns.slice(0,22)){
+    const replies=[];edTurnsOn(t.B,t.E,q,2,edLoneOn(t.B,q),[],replies);
+    let worst=Infinity;
+    for(const r of replies){
+      let v;
+      if(edAtGoal(r.B,r.E,q))v=-10000;
+      else if(!edCanFinish(r.B,r.E,me,2,edLoneOn(r.B,me)))v=-9000;
+      else v=edHeur(r.B,r.E,me);
+      if(v<worst)worst=v;
+      if(worst<best)break;
+    }
+    if(!replies.length)worst=9000;
+    if(worst>best){best=worst;ties=[t]}else if(worst==best)ties.push(t);
+    if(performance.now()>edDeadline&&ties.length)break;
+  }
+  return ties[Math.random()*ties.length|0].mvs;
+}
+function edBotSchedule(){
+  clearTimeout(edBotTimer);edBotTimer=0;
+  if(edBot&&!inRoom&&!ED.over&&ED.turn==EDBOT)edBotTimer=setTimeout(edBotStep,reduce?250:650);
+}
+function edBotStep(){
+  edBotTimer=0;
+  if(!edBot||inRoom||ED.over||ED.turn!=EDBOT)return;
+  let m=edPlan.shift();
+  if(!m||!edTargets(m[0]).includes(m[1])){edPlan=edBotChoose(edBot);m=edPlan.shift()}
+  if(m)edMove(m[0],m[1]);
+}
+const edCan=()=>!ED.over&&(role=='both'?!(edBot&&ED.turn==EDBOT):(role==ED.turn&&live));
 function edClick(i){
   if(!edCan())return;
   if(edSel!==null&&edTargets(edSel).includes(i)){edMove(edSel,i);return}
@@ -911,7 +997,7 @@ function edPlay(cells,mvs){
     last.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'})}
 }
 function edRender(){
-  const fl=role=='Y',tg=!edCan()||edSel===null?[]:edTargets(edSel);
+  const fl=role=='Y'||!!edBot,me=p=>role==p||(!!edBot&&p=='Y'),tg=!edCan()||edSel===null?[]:edTargets(edSel);
   const el=$('eboard');el.innerHTML='';el.style.setProperty('--ph',COL[ED.turn]);const cells=[];
   for(let k=0;k<25;k++){
     const i=fl?24-k:k,v=ED.B[i],b=document.createElement('button');
@@ -923,14 +1009,14 @@ function edRender(){
   const a=edAnim;edAnim=null;if(a&&a.length&&!reduce)edPlay(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('ep'+p);d.className='pl'+(ED.turn==p&&!ED.over?' on':'');d.style.borderColor=ED.turn==p&&!ED.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
   });
   const host=role=='both'||role=='Y';
   $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;
   if(!ED.over)edDismissed=false;
   const sw=ED.over&&!edDismissed;$('ewin').classList.toggle('hide',!sw);
   if(sw){
-    $('ewt').innerHTML=ED.win?`<i class="dot" style="background:${COL[ED.win]}"></i>${role==ED.win?'You win!':NAME[ED.win]+' wins!'}`:"It's a draw!";
+    $('ewt').innerHTML=ED.win?`<i class="dot" style="background:${COL[ED.win]}"></i>${me(ED.win)?'You win!':edBot?'The bot wins!':NAME[ED.win]+' wins!'}`:"It's a draw!";
     $('ewnew').classList.toggle('hide',!host);$('ewnew').disabled=inRoom&&!live;
   }
   let m='';
@@ -938,8 +1024,9 @@ function edRender(){
   else if(inRoom&&!live)m='Connecting...';
   else if(role=='S')m="Watching. It's "+NAME[ED.turn]+"'s turn.";
   else if(role!='both'&&role!=ED.turn)m='Waiting for '+NAME[ED.turn]+'...';
+  else if(edBot&&ED.turn==EDBOT)m='The bot is thinking...';
   else{
-    m=(role=='both'?NAME[ED.turn]+"'s turn":'Your turn')+': '+ED.left+(ED.left==1?' move':' moves')+' left.';
+    m=(role=='both'&&!edBot?NAME[ED.turn]+"'s turn":'Your turn')+': '+ED.left+(ED.left==1?' move':' moves')+' left.';
     if(ED.lone.length)m+=" Dimmed units are lonesome and can't move.";
     if(ED.moved.length&&!edConnOn(ED.B,ED.turn))m+=' Reconnect your units this move!';
   }
@@ -948,7 +1035,7 @@ function edRender(){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
-  }else $('estat').textContent='Local game on this device';
+  }else $('estat').textContent=edBot?'Local game vs bot ('+edBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
@@ -977,8 +1064,15 @@ function edHello(m){
   else if(role!='S'&&(role=='Y'||ED.seq>0)){ED.seq=Math.max(ED.seq,1);edPush(true)}
   view('egame');edRender();
 }
+function edTheme(){applyPal(themeEPal,EPALS);applyEPc(themeEPc)}
+function edUntheme(){applyPal(themePal);applyPc(themePc)}
 function edOpenLobby(){
-  applyEPc(themeEPc);$('epcn').textContent=epcName(themeEPc);
+  edTheme();
+  drawPal($('epal'),themeEPal,id=>{themeEPal=id;applyPal(id,EPALS);saveTheme()},EPALS);
+  edOpenColors();
+}
+function edOpenColors(){
+  $('epcn').textContent=epcName(themeEPc);
   drawPc($('epc'),themeEPc,id=>{themeEPc=id;applyEPc(id);saveTheme();$('epcn').textContent=epcName(id)},EPCS);
 }
 function edEnter(c,create){
@@ -987,25 +1081,29 @@ function edEnter(c,create){
   $('elerr').textContent='Connecting...';
   dropWs();curGame='elder';botLevel=null;clearTimeout(botTimer);
   code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
-  applyEPc(themeEPc);ED.seq=0;edInit();connect();
+  edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();ED.seq=0;edInit();connect();
 }
-function edLocal(){
-  dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;applyEPc(themeEPc);edInit();view('egame');edRender();
+function edLocal(level){
+  dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;
+  clearTimeout(edBotTimer);edPlan=[];edBot=level||null;
+  edTheme();edInit();view('egame');edRender();
 }
 function edLeave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';applyEPc(themeEPc);
+  dropWs();inRoom=false;live=false;creating=false;role='both';edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();
   $('spec').classList.add('hide');view('elobby');$('elerr').textContent='';edOpenLobby();
 }
 function edNewGame(){
   if(role=='G'||role=='S')return;
-  edInit();ED.seq++;edRender();edPush(true);
+  clearTimeout(edBotTimer);edPlan=[];
+  edInit();ED.seq++;edRender();edPush(true);edBotSchedule();
 }
 $('eld').onclick=()=>{curGame='elder';$('elerr').textContent='';edOpenLobby();view('elobby')};
-$('ehback').onclick=()=>{applyPc(themePc);view('hub')};
+$('ehback').onclick=()=>{edUntheme();view('hub')};
 $('ecreate').onclick=()=>edEnter(rand(),true);
 $('ejoin').onclick=()=>edEnter($('ecode').value,false);
 $('ecode').onkeydown=e=>{if(e.key=='Enter')edEnter($('ecode').value,false)};
-$('elocal').onclick=edLocal;
+$('elocal').onclick=()=>edLocal(null);
+document.querySelectorAll('[data-elv]').forEach(b=>b.onclick=()=>edLocal(b.dataset.elv));
 $('ereset').onclick=edNewGame;
 $('ewnew').onclick=edNewGame;
 $('ewview').onclick=()=>{edDismissed=true;edRender()};
