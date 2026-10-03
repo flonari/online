@@ -17,12 +17,12 @@ h2{font-size:1.1rem;margin:0}
 .mode{padding:2px 12px;font-size:.8rem;margin-top:8px}
 .seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
 .card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
-#lobby,#setup,#elobby,#clobby{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+#lobby,#setup,#elobby,#clobby,#esetup,#csetup{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
 #lobby hr,#elobby hr,#clobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
 .row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .or{color:var(--mut);font-size:.85rem}
 .hint{margin:0;color:var(--mut);font-size:.85rem}
-#lerr,#serr,#elerr,#cerr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
+#lerr,#serr,#elerr,#cerr,#eserr,#cserr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
 .sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--fg);padding:0;cursor:pointer}
 .sw[aria-pressed=true],.shp[aria-pressed=true]{outline:3px solid var(--hl);outline-offset:2px}
 .shp{width:44px;height:44px;border-radius:10px;border:2px solid var(--fg);background:var(--card);padding:4px;cursor:pointer;display:flex}
@@ -66,10 +66,6 @@ input{font:inherit;padding:8px 12px;border-radius:8px;border:2px solid var(--fg)
 details.card{padding:12px 18px;color:var(--mut);font-size:.9rem;box-shadow:none}
 details summary{cursor:pointer;color:var(--fg)}
 details p{margin:8px 0 0}
-.patch h3{margin:12px 0 2px;font-size:.95rem;color:var(--fg)}
-.patch h3 span{color:var(--mut);font-weight:normal;font-size:.8rem;margin-left:6px}
-.patch ul{margin:0;padding-left:20px}
-details.patch[open] summary{margin-bottom:0}
 h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-delay:calc(var(--i)*-.14s)}
 @keyframes wave{0%{transform:translateY(0)}12.5%{transform:translateY(-1px)}25%{transform:translateY(-2px)}37.5%{transform:translateY(-1px)}50%{transform:translateY(0)}62.5%{transform:translateY(1px)}75%{transform:translateY(2px)}87.5%{transform:translateY(1px)}}
 /* game hub */
@@ -91,13 +87,8 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 @keyframes flow{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){h1 .ch{animation:none}.fr{animation:none}}
 #ebw,#cbw{position:relative;width:100%;max-width:420px}
-#cboard{display:grid;grid-template-columns:repeat(7,1fr);width:100%;aspect-ratio:1;border:4px solid var(--d);border-radius:0;overflow:hidden;box-shadow:var(--shadow)}
+#cboard{display:grid;grid-template-columns:repeat(7,1fr);width:100%;aspect-ratio:1;border:5px solid var(--d);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
 body.cw h1{font-size:2rem;letter-spacing:.04em}
-body.cw .card{border-radius:4px}
-body.cw button.a{border-radius:2px}
-body.cw .pl{border-radius:4px}
-body.cw .sw{border-radius:3px}
-body.cw #cboard .c{box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .c svg.dim{opacity:.45}
 /* Elder Dance: same family as Kijutsu, with small differences */
 body.ed h1{font-variant:small-caps;letter-spacing:.12em;font-weight:700}
@@ -126,7 +117,7 @@ body.ed .sw{border-radius:8px}
     </button>
     <button class="gc" id="cow" type="button">
       <span class="gi" id="cicon"></span>
-      <span><span class="gt">Thronder</span><span class="gd">Throw your Stone Cylinder across the board. Two-player online or local.</span></span>
+      <span><span class="gt">Cylinders of the Wise</span><span class="gd">Throw your Stone Cylinder across the board. Two-player online or local.</span></span>
     </button>
     <button class="gc" type="button" disabled>
       <span class="gi">?</span>
@@ -138,7 +129,7 @@ body.ed .sw{border-radius:8px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.14</p>
+  <p class="sub">v1.16</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -209,13 +200,23 @@ body.ed .sw{border-radius:8px}
   <div class="or">or play against the bot</div>
   <div class="row"><button class="a" data-elv="easy">Easy</button><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
   <p class="hint">Against the bot you play first and the bot plays second.</p>
-  <hr>
-  <h2>Board palette</h2>
+  <p id="elerr" role="status"></p>
+</section>
+
+<section id="esetup" class="card hide">
+  <h2>Create a room</h2>
+  <div class="row"><input id="escode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="esrand">Random</button></div>
+  <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
+  <h2>Board colors</h2>
   <div class="row" id="epal"></div>
+  <p class="hint">Changes the board colors for this round.</p>
   <h2>Pawn colors</h2>
   <div class="row" id="epc"></div>
   <p class="hint" id="epcn"></p>
-  <p id="elerr" role="status"></p>
+  <label class="ck"><input type="checkbox" id="esrnd"> Randomize</label>
+  <p class="hint">Every new game in this room gets random board colors and pawn colors.</p>
+  <p id="eserr" role="status"></p>
+  <div class="row"><button class="a primary" id="esstart">Start room</button><button class="a" id="esback">Back</button></div>
 </section>
 
 <section id="egame" class="hide">
@@ -244,13 +245,23 @@ body.ed .sw{border-radius:8px}
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="clocal">Play on this device</button></div>
-  <hr>
-  <h2>Board palette</h2>
+  <p id="cerr" role="status"></p>
+</section>
+
+<section id="csetup" class="card hide">
+  <h2>Create a room</h2>
+  <div class="row"><input id="cscode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="csrand">Random</button></div>
+  <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
+  <h2>Board colors</h2>
   <div class="row" id="cpal"></div>
+  <p class="hint">Changes the board colors for this round.</p>
   <h2>Pawn colors</h2>
   <div class="row" id="cpc"></div>
   <p class="hint" id="cpcn"></p>
-  <p id="cerr" role="status"></p>
+  <label class="ck"><input type="checkbox" id="csrnd"> Randomize</label>
+  <p class="hint">Every new game in this room gets random board colors and pawn colors.</p>
+  <p id="cserr" role="status"></p>
+  <div class="row"><button class="a primary" id="csstart">Start room</button><button class="a" id="csback">Back</button></div>
 </section>
 
 <section id="cgame" class="hide">
@@ -275,57 +286,6 @@ body.ed .sw{border-radius:8px}
 <p>Each side has 3 guards and 1 Wise Elder, starting as shown on the board. On your turn move 2 different units (the very first move of the game is only 1 unit). A unit slides any number of tiles in a straight line, orthogonal or diagonal, over empty tiles only. When a unit stops next to enemy units (any of the 8 tiles around it), each of them is pushed 1 tile directly away, if that tile is empty. At the end of your turn all your units must form one orthogonally connected cluster, or you lose. A unit with no orthogonal friend at the start of your turn is lonesome and can't move that turn, so rescue it. If your Wise Elder stands on the far edge at the end of your turn and your units are connected, you win. If you can't take a full turn that ends connected, you lose.</p></details>
 <details class="card hide" id="crules"><summary>Rules</summary>
 <p>Each side has 4 Messengers and 1 Stone Cylinder, set up as shown on the board. The first color starts. On your turn move one of your Messengers 1 or 2 steps in a straight line in any of the 8 directions, over empty tiles only. It must then Throw: pick a unit on one of the 8 tiles around it, and that unit lands on the tile on the exact opposite side of the Messenger. That tile must be on the board and empty. You can throw your own Stone Cylinder and any Messenger, but never the enemy Stone Cylinder. An enemy Messenger you throw is stunned: it can't move on its owner's next turn, but it can still be thrown. After a throw, if other non-stunned Messengers of yours stand next to the landing tile, you may throw that unit again with one of them, once per Messenger. A Messenger that can't move to a tile where it can throw can't be moved. Get your Stone Cylinder onto the row at the far end to win at once. If you have no legal move you pass.</p></details>
-<details class="card patch hide" id="patch"><summary>Patch notes</summary>
-<h3>v1.14<span>Oct 3, 2026</span></h3>
-<ul><li>New third game on the hub: Cylinders of the Wise, with its own blue board and pawn colors. Play it online with room codes or on one device.</li>
-<li>Elder Dance now has an Easy bot as well as Normal and Hard.</li></ul>
-<h3>v1.13<span>Oct 3, 2026</span></h3>
-<ul><li>Elder Dance has its own board palettes: Green (the default), Badland, Sky and Plum.</li>
-<li>Play Elder Dance against a bot on Normal or Hard.</li></ul>
-<h3>v1.12<span>Oct 3, 2026</span></h3>
-<ul><li>Elder Dance now looks much closer to Kijutsu, with only small style differences.</li>
-<li>Elder Dance has its own pawn color pairs, with Coral and Teal as the default.</li></ul>
-<h3>v1.11<span>Oct 3, 2026</span></h3>
-<ul><li>New second game on the hub: Elder Dance, with its own look. Play it online with room codes or on one device.</li></ul>
-<h3>v1.10<span>Oct 2, 2026</span></h3>
-<ul><li>Removed the Theme button inside Kijutsu. Theme settings are now only on the game picker.</li></ul>
-<h3>v1.09<span>Oct 2, 2026</span></h3>
-<ul><li>Move highlights, the selected pawn ring and the active player's panel now use the color of the pawns.</li>
-<li>Bug fixes.</li></ul>
-<h3>v1.08<span>Oct 2, 2026</span></h3>
-<ul><li>New game hub: the site opens on flow.state with a list of games. Pick Kijutsu to play, and use "All games" to come back.</li>
-<li>The hub has a slowly drifting "flow.state" text background.</li></ul>
-<h3>v1.07<span>Oct 2, 2026</span></h3>
-<ul><li>Create room now has a Pawn shape option: Wizard, Pawn or Hat. It only changes the look, and everyone in the room sees it.</li></ul>
-<h3>v1.06<span>Oct 1, 2026</span></h3>
-<ul><li>Play against a bot on Easy, Normal or Hard.</li>
-<li>Pawn color pairs, plus a Randomise option for the palette and pawn colors.</li>
-<li>Sounds for moves, captures and wins.</li>
-<li>New win rule: reduce your opponent to 2 wizards on the board.</li>
-<li>Fixed a crash that stopped the board from showing in some screens.</li></ul>
-<h3>v1.05<span>Oct 1, 2026</span></h3>
-<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
-<li>The palette you pick in Create room is saved as your theme.</li>
-<li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
-<h3>v1.04<span>Oct 1, 2026</span></h3>
-<ul><li>Every palette now has a light and a dark version.</li>
-<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
-<h3>v1.03<span>Oct 1, 2026</span></h3>
-<ul><li>Spectator count is shown in the bottom left during online games.</li>
-<li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
-<li>Create room menu: pick a custom or random room code and a color palette.</li>
-<li>The host can pick a new palette whenever they start a new game.</li></ul>
-<h3>v1.02<span>Sep 30, 2026</span></h3>
-<ul><li>Added a win screen.</li>
-<li>Reserve wizards are now shown as balls at the sides of the board.</li>
-<li>Added a Header Animation.</li></ul>
-<h3>v1.01<span>Sep 30, 2026</span></h3>
-<ul><li>Added these patch notes.</li>
-<li>Now only the host can restart or create a new game.</li>
-<li>Patch notes are hidden while in a game.</li></ul>
-<h3>v1.0<span>Sep 29, 2026</span></h3>
-<ul><li>initial release</li></ul>
-</details>
 </main>
 
 <div id="spec" class="hide" role="status"></div>
@@ -370,9 +330,10 @@ const EPALS={
 };
 // Cylinders of the Wise palettes (blue is its default)
 const CPALS={
-  blue:P('Blue','#e9eef5 #f6f8fc #14233a #f2f5fa #3f76b0 #55708f #c9d6e6 #f2b84b','#0f1722 #172233 #e3ecf7 #8aa0bd #2a4c78 #8fa6c2 #28384f #f2b84b'),
-  slate:P('Slate','#eceef0 #f8f9fa #1f2328 #f4f5f6 #667085 #6a7078 #d5d9de #4aa3ff','#14161a #1d2025 #e8eaed #9aa1ad #3a404a #9aa1ad #2f343c #4aa3ff'),
-  rose:P('Rose','#f6e9ec #fcf4f6 #3a1d27 #f7eef0 #b4607a #86616d #ebcdd5 #5cc8a0','#1f1217 #2c1a21 #f6e4ea #a88a95 #6e3446 #c5a0ad #4a2e38 #5cc8a0')
+  blue:P('Blue','#e8eef6 #f7f9fd #13233b #f4f7fc #3b73ad #5a7391 #c8d6e8 #f0b43c','#0e1621 #16212f #e4edf8 #7f97b8 #27496f #8fa6c2 #273850 #f0b43c'),
+  sand:P('Sandstone','#f1e9db #faf5ea #2f2416 #f6eedd #b28b5a #7d6a52 #e1d3bb #3f9be0','#1c1610 #281f16 #f2e8d6 #a68660 #5f4529 #bfa98c #43362a #5fb0ee'),
+  jade:P('Jade','#e6f1ec #f4faf7 #12302a #f3f9f6 #3f8f78 #52756b #c2dcd2 #f2c14b','#0d1a17 #15251f #dff0ea #78a899 #265447 #8fb5a9 #23403a #f2c14b'),
+  dusk:P('Dusk','#ece8f4 #f8f6fc #221a38 #f5f2fb #6a5aa8 #6d6590 #d2cbe6 #ffd36b','#120f1d #1b172a #e8e3f6 #8a7fb8 #3a3069 #a39cc8 #322a52 #ffd36b')
 };
 // pawn color sets: id -> [host color name, host color, guest color name, guest color]
 const PCS={
@@ -393,11 +354,11 @@ const EPCS={
   stone:['Silver','#cfd3da','Charcoal','#4b4f5c']
 };
 const CPCS={
-  wise:['Beige','#e8c98a','Navy','#26335c'],
-  ivory:['Ivory','#f1ecdf','Black','#262631'],
-  sand:['Sand','#d9b98a','Teal','#2f8f95'],
-  rose:['Rose','#e48aa0','Forest','#2d5a3d'],
-  gold:['Gold','#e6b83a','Violet','#5b3f99']
+  wise:['Beige','#ecd29e','Navy','#223a6b'],
+  ivory:['Ivory','#f4efe3','Ink','#232430'],
+  amber:['Amber','#f0a93a','Teal','#1f8a8a'],
+  coral:['Coral','#ee7d6b','Forest','#2c6a47'],
+  royal:['Gold','#e8be45','Violet','#5d3fa0']
 };
 const SHAPES={
   wizard:['Wizard','<circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/>'],
@@ -441,7 +402,7 @@ function applyEPc(id){
 }
 const epcName=id=>EPCS[id][0]+' (host) vs '+EPCS[id][2];
 const pcName=id=>PCS[id][0]+' (host) vs '+PCS[id][2];
-let mode='auto',themePal='classic',shownPal='classic',shownMap=PALS,themeEPal='grass',themeCPal='blue',themeCPc='wise',curCPc='wise';
+let mode='auto',themePal='classic',shownPal='classic',shownMap=PALS,themeEPal='grass',themeCPal='blue',curEPal='grass',curCPal='blue',themeCPc='wise',curCPc='wise';
 const mq=matchMedia('(prefers-color-scheme: dark)');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
@@ -496,17 +457,16 @@ function openTheme(){
 }
 function closeTheme(){$('th').classList.add('hide');const e=$('spal');if(e._cb)drawPal(e,pick,e._cb)}
 function view(v){
-  ['hub','lobby','setup','game','elobby','egame','clobby','cgame'].forEach(x=>$(x).classList.toggle('hide',x!=v));
-  const ed=v=='elobby'||v=='egame',cw=v=='clobby'||v=='cgame',kj=v=='lobby'||v=='setup'||v=='game';
+  ['hub','lobby','setup','game','elobby','esetup','egame','clobby','csetup','cgame'].forEach(x=>$(x).classList.toggle('hide',x!=v));
+  const ed=v=='elobby'||v=='esetup'||v=='egame',cw=v=='clobby'||v=='csetup'||v=='cgame',kj=v=='lobby'||v=='setup'||v=='game';
   document.body.classList.toggle('ed',ed);
   document.body.classList.toggle('cw',cw);
   $('hdr').classList.toggle('hide',v=='hub');
   $('flowbg').classList.toggle('hide',v!='hub');
-  $('patch').classList.toggle('hide',!(v=='lobby'||v=='setup'));
   $('rules').classList.toggle('hide',!kj);
   $('erules').classList.toggle('hide',!ed);
   $('crules').classList.toggle('hide',!cw);
-  const name=ed?'Elder Dance':cw?'Thronder':'Kijutsu';
+  const name=ed?'Elder Dance':cw?'Cylinders of the Wise':'Kijutsu';
   if(v!='hub')setTitle(name);
   document.title=v=='hub'?'flow.state':name;
 }
@@ -782,8 +742,8 @@ function fail(msg){
   const was=creating;
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
-  if(curGame=='elder'){edTheme();view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
-  if(curGame=='cotw'){cwTheme();view('clobby');$('cerr').textContent=msg;cwOpenLobby();return}
+  if(curGame=='elder'){edTheme();view(was?'esetup':'elobby');$(was?'eserr':'elerr').textContent=msg;return}
+  if(curGame=='cotw'){cwTheme();view(was?'csetup':'clobby');$(was?'cserr':'cerr').textContent=msg;return}
   if(was){applyPc(themePc);applySh(themeSh);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby');$('lerr').textContent=msg}
 }
@@ -809,7 +769,7 @@ function connect(){
     if(s!==ws)return;
     live=false;
     if(inRoom){
-      if($({elder:'egame',cotw:'cgame'}[curGame]||'game').classList.contains('hide'))$({elder:'elerr',cotw:'cerr'}[curGame]||(creating?'serr':'lerr')).textContent='Could not reach the server, retrying...';
+      if($({elder:'egame',cotw:'cgame'}[curGame]||'game').classList.contains('hide'))$(({elder:creating?'eserr':'elerr',cotw:creating?'cserr':'cerr'})[curGame]||(creating?'serr':'lerr')).textContent='Could not reach the server, retrying...';
       ({elder:edRender,cotw:cwRender}[curGame]||render)();setTimeout(()=>{if(inRoom&&s===ws)connect()},1500);
     }
   };
@@ -893,7 +853,7 @@ setTitle('Kijutsu');
 // ================= Elder Dance =================
 let curGame='kij';
 const ED={B:[],E:[],turn:'Y',left:1,moved:[],lone:[],over:false,win:null,note:'',seq:0,mvs:[]};
-let edSel=null,edAnim=null,edDismissed=false,edBot=null,edBotTimer=0,edPlan=[];
+let edSel=null,edAnim=null,edDismissed=false,edBot=null,edBotTimer=0,edPlan=[],edRnd=false;
 const EDBOT='G';
 const edOrth=[[1,0],[-1,0],[0,1],[0,-1]];
 const edUnit=(fill,elder,cls)=>`<svg viewBox="0 0 24 24" class="${cls||''}"><circle cx="12" cy="12" r="9.5" fill="${fill}" stroke="#2b1d1d" stroke-width="1.4"/>${elder?'<path d="M7 15.5l-.8-6 3.6 2.7L12 7.5l2.2 4.7 3.6-2.7-.8 6z" fill="#1c2740"/>':''}</svg>`;
@@ -1115,7 +1075,7 @@ function edRender(){
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
-const edSnap=()=>({game:'elder',seq:ED.seq,B:ED.B,E:ED.E,turn:ED.turn,left:ED.left,moved:ED.moved,lone:ED.lone,over:ED.over,win:ED.win,note:ED.note,mvs:ED.mvs,pc:curEPc});
+const edSnap=()=>({game:'elder',seq:ED.seq,B:ED.B,E:ED.E,turn:ED.turn,left:ED.left,moved:ED.moved,lone:ED.lone,over:ED.over,win:ED.win,note:ED.note,mvs:ED.mvs,pc:curEPc,pal:curEPal});
 function edPush(reset){if(inRoom)send({t:'state',reset:!!reset,state:edSnap()})}
 function edApply(d,force,quiet){
   const tile=v=>Number.isInteger(v)&&v>=0&&v<25;
@@ -1129,6 +1089,7 @@ function edApply(d,force,quiet){
   ED.over=!!d.over;ED.win=d.win=='Y'||d.win=='G'?d.win:null;ED.note=String(d.note||'').slice(0,200);ED.mvs=d.mvs;
   edSel=null;
   if(typeof d.pc=='string'&&EPCS[d.pc]&&d.pc!==curEPc)applyEPc(d.pc);
+  if(typeof d.pal=='string'&&EPALS[d.pal]&&d.pal!==curEPal){curEPal=d.pal;applyPal(curEPal,EPALS)}
   if(!force&&!quiet&&d.mvs.length){
     if(!reduce)edAnim=d.mvs;
     sfx(ED.over&&!oldOver&&ED.win?'win':d.mvs.length>1?'take':'move');
@@ -1140,42 +1101,53 @@ function edHello(m){
   else if(role!='S'&&(role=='Y'||ED.seq>0)){ED.seq=Math.max(ED.seq,1);edPush(true)}
   view('egame');edRender();
 }
-function edTheme(){applyPal(themeEPal,EPALS);applyEPc(themeEPc)}
+function edTheme(){curEPal=themeEPal;applyPal(themeEPal,EPALS);applyEPc(themeEPc)}
 function edUntheme(){applyPal(themePal);applyPc(themePc)}
-function edOpenLobby(){
-  edTheme();
-  drawPal($('epal'),themeEPal,id=>{themeEPal=id;applyPal(id,EPALS);saveTheme()},EPALS);
-  edOpenColors();
-}
-function edOpenColors(){
+function edOpenLobby(){edTheme()}
+function edOpenSetup(){
+  edTheme();$('escode').value=rand();$('eserr').textContent='';
+  drawPal($('epal'),themeEPal,id=>{themeEPal=curEPal=id;applyPal(id,EPALS);saveTheme()},EPALS);
   $('epcn').textContent=epcName(themeEPc);
   drawPc($('epc'),themeEPc,id=>{themeEPc=id;applyEPc(id);saveTheme();$('epcn').textContent=epcName(id)},EPCS);
+  view('esetup');
+}
+function edRandomise(){
+  const pals=Object.keys(EPALS).filter(k=>k!==curEPal),pcs=Object.keys(EPCS).filter(k=>k!==curEPc);
+  curEPal=pals[Math.random()*pals.length|0];applyPal(curEPal,EPALS);
+  applyEPc(pcs[Math.random()*pcs.length|0]);
 }
 function edEnter(c,create){
   c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(c.length<3){$('elerr').textContent='Enter a code of 3 to 12 letters or digits.';return}
-  $('elerr').textContent='Connecting...';
+  const err=$(create?'eserr':'elerr');
+  if(c.length<3){err.textContent='Enter a code of 3 to 12 letters or digits.';return}
+  err.textContent='Connecting...';
   dropWs();curGame='elder';botLevel=null;clearTimeout(botTimer);
   code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
+  edRnd=!!create&&$('esrnd').checked;
   edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();ED.seq=0;edInit();connect();
 }
 function edLocal(level){
   dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;
-  clearTimeout(edBotTimer);edPlan=[];edBot=level||null;
+  clearTimeout(edBotTimer);edPlan=[];edRnd=false;edBot=level||null;
   edTheme();edInit();view('egame');edRender();
 }
 function edLeave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();
+  dropWs();inRoom=false;live=false;creating=false;role='both';edRnd=false;edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();
   $('spec').classList.add('hide');view('elobby');$('elerr').textContent='';edOpenLobby();
 }
 function edNewGame(){
   if(role=='G'||role=='S')return;
   clearTimeout(edBotTimer);edPlan=[];
+  if(edRnd)edRandomise();
   edInit();ED.seq++;edRender();edPush(true);edBotSchedule();
 }
 $('eld').onclick=()=>{curGame='elder';$('elerr').textContent='';edOpenLobby();view('elobby')};
 $('ehback').onclick=()=>{edUntheme();view('hub')};
-$('ecreate').onclick=()=>edEnter(rand(),true);
+$('ecreate').onclick=edOpenSetup;
+$('esrand').onclick=()=>{$('escode').value=rand()};
+$('esstart').onclick=()=>edEnter($('escode').value,true);
+$('escode').onkeydown=e=>{if(e.key=='Enter')edEnter($('escode').value,true)};
+$('esback').onclick=()=>{dropWs();inRoom=false;creating=false;edTheme();view('elobby')};
 $('ejoin').onclick=()=>edEnter($('ecode').value,false);
 $('ecode').onkeydown=e=>{if(e.key=='Enter')edEnter($('ecode').value,false)};
 $('elocal').onclick=()=>edLocal(null);
@@ -1191,16 +1163,17 @@ const CW={B:[],K:[],S:[],turn:'Y',ph:'m',mover:-1,cur:-1,used:[],over:false,win:
 let cwSel=null,cwAnim=null,cwDismissed=false;
 const CWD=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 const cwIn=(r,c)=>r>=0&&r<7&&c>=0&&c<7;
+// Messenger: a plain triangle. Stone Cylinder: a plain circle with a ring.
 const cwPiece=(fill,k,cls)=>k==2
-  ?`<svg viewBox="0 0 24 24" class="${cls||''}"><circle cx="12" cy="12" r="10" fill="${fill}" stroke="#2b1d1d" stroke-width="1.4"/><circle cx="12" cy="12" r="5.6" fill="none" stroke="#2b1d1d" stroke-opacity=".55" stroke-width="1.2"/></svg>`
-  :`<svg viewBox="0 0 24 24" class="${cls||''}"><g fill="${fill}" stroke="#2b1d1d" stroke-width=".8">${SHAPES.pawn[1]}</g></svg>`;
+  ?`<svg viewBox="0 0 24 24" class="${cls||''}"><circle cx="12" cy="12" r="10" fill="${fill}" stroke="#2b1d1d" stroke-width="1.4"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="#2b1d1d" stroke-opacity=".55" stroke-width="1.3"/></svg>`
+  :`<svg viewBox="0 0 24 24" class="${cls||''}"><path d="M12 3.2L21 20H3z" fill="${fill}" stroke="#2b1d1d" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
 function applyCPc(id){
   if(!CPCS[id])id='wise';
   curCPc=id;const v=CPCS[id],st=document.documentElement.style;
   NAME.Y=v[0];NAME.G=v[2];st.setProperty('--y',v[1]);st.setProperty('--g',v[3]);
 }
 const cpcName=id=>CPCS[id][0]+' (host) vs '+CPCS[id][2];
-function cwTheme(){applyPal(themeCPal,CPALS);applyCPc(themeCPc)}
+function cwTheme(){curCPal=themeCPal;applyPal(themeCPal,CPALS);applyCPc(themeCPc)}
 // throws a Messenger standing on m could make right now: [{u: unit tile, L: landing tile}]
 function cwThrowsFrom(B,K,m){
   const r=m/7|0,c=m%7,own=B[m],out=[];
@@ -1368,7 +1341,7 @@ function cwRender(){
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
-const cwSnap=()=>({game:'cotw',seq:CW.seq,B:CW.B,K:CW.K,S:CW.S,turn:CW.turn,ph:CW.ph,mover:CW.mover,cur:CW.cur,used:CW.used,over:CW.over,win:CW.win,note:CW.note,mvs:CW.mvs,pc:curCPc});
+const cwSnap=()=>({game:'cotw',seq:CW.seq,B:CW.B,K:CW.K,S:CW.S,turn:CW.turn,ph:CW.ph,mover:CW.mover,cur:CW.cur,used:CW.used,over:CW.over,win:CW.win,note:CW.note,mvs:CW.mvs,pc:curCPc,pal:curCPal});
 function cwPush(reset){if(inRoom)send({t:'state',reset:!!reset,state:cwSnap()})}
 function cwApply(d,force,quiet){
   const tile=v=>Number.isInteger(v)&&v>=0&&v<49;
@@ -1383,6 +1356,7 @@ function cwApply(d,force,quiet){
   CW.over=!!d.over;CW.win=d.win=='Y'||d.win=='G'?d.win:null;CW.note=String(d.note||'').slice(0,200);CW.mvs=d.mvs;
   cwSel=null;
   if(typeof d.pc=='string'&&CPCS[d.pc]&&d.pc!==curCPc)applyCPc(d.pc);
+  if(typeof d.pal=='string'&&CPALS[d.pal]&&d.pal!==curCPal){curCPal=d.pal;applyPal(curCPal,CPALS)}
   if(!force&&!quiet&&d.mvs.length){
     if(!reduce)cwAnim=d.mvs;
     sfx(CW.over&&!oldOver&&CW.win?'win':CW.S.filter(Boolean).length>oldStun?'take':'move');
@@ -1394,34 +1368,49 @@ function cwHello(m){
   else if(role!='S'&&(role=='Y'||CW.seq>0)){CW.seq=Math.max(CW.seq,1);cwPush(true)}
   view('cgame');cwRender();
 }
-function cwOpenLobby(){
-  cwTheme();
-  drawPal($('cpal'),themeCPal,id=>{themeCPal=id;applyPal(id,CPALS);saveTheme()},CPALS);
+function cwOpenLobby(){cwTheme()}
+function cwOpenSetup(){
+  cwTheme();$('cscode').value=rand();$('cserr').textContent='';
+  drawPal($('cpal'),themeCPal,id=>{themeCPal=curCPal=id;applyPal(id,CPALS);saveTheme()},CPALS);
   $('cpcn').textContent=cpcName(themeCPc);
   drawPc($('cpc'),themeCPc,id=>{themeCPc=id;applyCPc(id);saveTheme();$('cpcn').textContent=cpcName(id)},CPCS);
+  view('csetup');
 }
+function cwRandomise(){
+  const pals=Object.keys(CPALS).filter(k=>k!==curCPal),pcs=Object.keys(CPCS).filter(k=>k!==curCPc);
+  curCPal=pals[Math.random()*pals.length|0];applyPal(curCPal,CPALS);
+  applyCPc(pcs[Math.random()*pcs.length|0]);
+}
+let cwRnd=false;
 function cwEnter(c,create){
   c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(c.length<3){$('cerr').textContent='Enter a code of 3 to 12 letters or digits.';return}
-  $('cerr').textContent='Connecting...';
+  const err=$(create?'cserr':'cerr');
+  if(c.length<3){err.textContent='Enter a code of 3 to 12 letters or digits.';return}
+  err.textContent='Connecting...';
   dropWs();curGame='cotw';botLevel=null;clearTimeout(botTimer);edBot=null;clearTimeout(edBotTimer);
   code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
+  cwRnd=!!create&&$('csrnd').checked;
   cwTheme();CW.seq=0;cwInit();connect();
 }
 function cwLocal(){
-  dropWs();inRoom=false;curGame='cotw';role='both';CW.seq=0;cwTheme();cwInit();view('cgame');cwRender();
+  dropWs();inRoom=false;curGame='cotw';role='both';cwRnd=false;CW.seq=0;cwTheme();cwInit();view('cgame');cwRender();
 }
 function cwLeave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';cwTheme();
+  dropWs();inRoom=false;live=false;creating=false;role='both';cwRnd=false;cwTheme();
   $('spec').classList.add('hide');view('clobby');$('cerr').textContent='';cwOpenLobby();
 }
 function cwNewGame(){
   if(role=='G'||role=='S')return;
+  if(cwRnd)cwRandomise();
   cwInit();CW.seq++;cwRender();cwPush(true);
 }
 $('cow').onclick=()=>{curGame='cotw';$('cerr').textContent='';cwOpenLobby();view('clobby')};
 $('chback').onclick=()=>{edUntheme();view('hub')};
-$('ccreate').onclick=()=>cwEnter(rand(),true);
+$('ccreate').onclick=cwOpenSetup;
+$('csrand').onclick=()=>{$('cscode').value=rand()};
+$('csstart').onclick=()=>cwEnter($('cscode').value,true);
+$('cscode').onkeydown=e=>{if(e.key=='Enter')cwEnter($('cscode').value,true)};
+$('csback').onclick=()=>{dropWs();inRoom=false;creating=false;cwTheme();view('clobby')};
 $('cjoin').onclick=()=>cwEnter($('ccode').value,false);
 $('ccode').onkeydown=e=>{if(e.key=='Enter')cwEnter($('ccode').value,false)};
 $('clocal').onclick=cwLocal;
