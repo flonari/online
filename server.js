@@ -35,11 +35,13 @@ const peers = r => {
 const send = (s, m) => { if (s.readyState === 1) s.send(JSON.stringify(m)); };
 const bc = (r, m, except) => { for (const s of r.socks) if (s !== except) send(s, m); };
 const okState = st => st && Number.isInteger(st.seq) && st.seq >= 0 &&
-  Array.isArray(st.B) && st.B.length === 25 && st.B.every(v => v === null || v === 'Y' || v === 'G') &&
+  Array.isArray(st.B) && st.B.length === (st.game === 'cotw' ? 49 : 25) && st.B.every(v => v === null || v === 'Y' || v === 'G') &&
   (st.turn === 'Y' || st.turn === 'G') &&
   (st.game === 'elder'
     ? Array.isArray(st.E) && st.E.length === 25
-    : Array.isArray(st.X) && st.X.length === 25 && st.R && st.C);
+    : st.game === 'cotw'
+      ? Array.isArray(st.K) && st.K.length === 49 && Array.isArray(st.S) && st.S.length === 49
+      : Array.isArray(st.X) && st.X.length === 25 && st.R && st.C);
 
 wss.on('connection', ws => {
   ws.alive = true; ws.room = null; ws.role = null;
@@ -48,7 +50,7 @@ wss.on('connection', ws => {
     let m; try { m = JSON.parse(raw); } catch { return; }
     if ((m.t === 'join' || m.t === 'create') && !ws.room) {
       if (typeof m.code !== 'string' || !/^[a-z0-9]{3,12}$/.test(m.code)) return send(ws, { t: 'err', msg: 'Bad room code. Use 3 to 12 letters or digits.' });
-      const game = m.game === 'elder' ? 'elder' : 'kij';
+      const game = m.game === 'elder' || m.game === 'cotw' ? m.game : 'kij';
       const exists = rooms.has(m.code);
       if (m.t === 'create' && exists) return send(ws, { t: 'err', msg: 'That room code is already taken.' });
       if (m.t === 'join' && !exists) return send(ws, { t: 'err', msg: 'Room not found. Check the code, or create a room.' });
@@ -64,7 +66,7 @@ wss.on('connection', ws => {
       bc(r, { t: 'peers', peers: peers(r) }, ws);
     } else if (m.t === 'state' && ws.room && ws.role !== 'S') {
       const r = ws.room, st = m.state;
-      const ok = okState(st) && ((st.game === 'elder') === (r.game === 'elder')) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
+      const ok = okState(st) && ((st.game || 'kij') === r.game) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
       if (ok) { r.state = st; bc(r, { t: 'state', state: st }, ws); }
       else if (r.state) send(ws, { t: 'state', state: r.state, force: true });
     }
