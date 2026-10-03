@@ -92,16 +92,14 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 @media (prefers-reduced-motion:reduce){h1 .ch{animation:none}.fr{animation:none}}
 #ebw{position:relative;width:100%;max-width:420px}
 .c svg.dim{opacity:.45}
-/* Elder Dance has its own look: sans type, stripes, squarer corners, hard shadows */
-body.ed{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
-body.ed::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;background:repeating-linear-gradient(45deg,var(--fg) 0 1px,transparent 1px 16px)}
-body.ed h1{text-transform:uppercase;letter-spacing:.14em;font-weight:800;font-size:2.2rem}
-body.ed .card{border-radius:6px;border:2px solid var(--fg);box-shadow:4px 4px 0 var(--fg)}
-body.ed details.card{box-shadow:none}
-body.ed button.a{border-radius:4px;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;font-weight:700}
-body.ed .pl{border-radius:4px}
-body.ed #eboard{border-radius:3px;border-width:6px;box-shadow:6px 6px 0 var(--fg)}
-body.ed .sw{border-radius:6px}
+/* Elder Dance: same family as Kijutsu, with small differences */
+body.ed h1{font-variant:small-caps;letter-spacing:.12em;font-weight:700}
+body.ed .card{border-radius:10px}
+body.ed button.a{border-radius:6px;letter-spacing:.03em}
+body.ed .pl{border-radius:8px;border-width:2px}
+body.ed #eboard{border-radius:6px;border-width:6px}
+body.ed #eboard .c{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+body.ed .sw{border-radius:8px}
 </style>
 </head>
 <body>
@@ -129,7 +127,7 @@ body.ed .sw{border-radius:6px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.11</p>
+  <p class="sub">v1.12</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -225,6 +223,9 @@ body.ed .sw{border-radius:6px}
 <details class="card hide" id="erules"><summary>Rules</summary>
 <p>Each side has 3 guards and 1 Wise Elder, starting as shown on the board. On your turn move 2 different units (the very first move of the game is only 1 unit). A unit slides any number of tiles in a straight line, orthogonal or diagonal, over empty tiles only. When a unit stops next to enemy units (any of the 8 tiles around it), each of them is pushed 1 tile directly away, if that tile is empty. At the end of your turn all your units must form one orthogonally connected cluster, or you lose. A unit with no orthogonal friend at the start of your turn is lonesome and can't move that turn, so rescue it. If your Wise Elder stands on the far edge at the end of your turn and your units are connected, you win. If you can't take a full turn that ends connected, you lose.</p></details>
 <details class="card patch hide" id="patch"><summary>Patch notes</summary>
+<h3>v1.12<span>Oct 3, 2026</span></h3>
+<ul><li>Elder Dance now looks much closer to Kijutsu, with only small style differences.</li>
+<li>Elder Dance has its own pawn color pairs, with Coral and Teal as the default.</li></ul>
 <h3>v1.11<span>Oct 3, 2026</span></h3>
 <ul><li>New second game on the hub: Elder Dance, with its own look. Play it online with room codes or on one device.</li></ul>
 <h3>v1.10<span>Oct 2, 2026</span></h3>
@@ -310,6 +311,15 @@ const PCS={
   mono:['White','#f4f1ec','Black','#4a4a55'],
   sky:['Cyan','#6fd3e8','Crimson','#b8334a']
 };
+// Elder Dance has its own pawn color pairs: id -> [host name, host color, guest name, guest color]
+const EPCS={
+  dance:['Coral','#ee7a6a','Teal','#3fb2a6'],
+  royal:['Violet','#a07fe6','Gold','#e8b93c'],
+  sea:['Navy','#4a6fd0','Sand','#e6cf9a'],
+  ember:['Crimson','#c8404f','Mint','#7fd6b0'],
+  dusk:['Orange','#f09a45','Indigo','#5a56b8'],
+  stone:['Silver','#cfd3da','Charcoal','#4b4f5c']
+};
 const SHAPES={
   wizard:['Wizard','<circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/>'],
   pawn:['Pawn','<circle cx="12" cy="7" r="4"/><path d="M9.5 11.5h5l1.5 5h2.5v3h-13v-3H8z"/>'],
@@ -328,23 +338,29 @@ function drawSh(el,cur,cb){
     el.appendChild(b);
   });
 }
-let themePc='classic',curPc='classic',pickPc='classic';
+let themePc='classic',curPc='classic',pickPc='classic',themeEPc='dance',curEPc='dance';
 function applyPc(id){
   if(!PCS[id])id='classic';
   curPc=id;const v=PCS[id],st=document.documentElement.style;
   NAME.Y=v[0];NAME.G=v[2];st.setProperty('--y',v[1]);st.setProperty('--g',v[3]);
 }
-function drawPc(el,cur,cb){
+function drawPc(el,cur,cb,map=PCS){
   el.innerHTML='';
-  Object.entries(PCS).forEach(([id,v])=>{
+  Object.entries(map).forEach(([id,v])=>{
     const b=document.createElement('button');
     b.type='button';b.className='sw';b.title=v[0]+' and '+v[2];b.setAttribute('aria-label',v[0]+' and '+v[2]+' pawns');
     b.setAttribute('aria-pressed',id==cur);
     b.style.background=`linear-gradient(135deg,${v[1]} 50%,${v[3]} 50%)`;
-    b.onclick=()=>{cb(id);drawPc(el,id,cb)};
+    b.onclick=()=>{cb(id);drawPc(el,id,cb,map)};
     el.appendChild(b);
   });
 }
+function applyEPc(id){
+  if(!EPCS[id])id='dance';
+  curEPc=id;const v=EPCS[id],st=document.documentElement.style;
+  NAME.Y=v[0];NAME.G=v[2];st.setProperty('--y',v[1]);st.setProperty('--g',v[3]);
+}
+const epcName=id=>EPCS[id][0]+' (host) vs '+EPCS[id][2];
 const pcName=id=>PCS[id][0]+' (host) vs '+PCS[id][2];
 let mode='auto',themePal='classic',shownPal='classic';
 const mq=matchMedia('(prefers-color-scheme: dark)');
@@ -352,7 +368,7 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
 const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
-const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh)};
+const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc)};
 function applyPal(id){
   if(!PALS[id])id='classic';
   shownPal=id;
@@ -385,7 +401,8 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   if(['auto','light','dark'].includes(t[1]))mode=t[1];
   curPal=pick=shownPal=themePal;setMode(mode);
   const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc);
-  const sh=rc('kj-shape');if(SHAPES[sh])themeSh=pickSh=sh;applySh(themeSh)})();
+  const sh=rc('kj-shape');if(SHAPES[sh])themeSh=pickSh=sh;applySh(themeSh);
+  const ep=rc('kj-epawn');if(EPCS[ep])themeEPc=curEPc=ep})();
 const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
 const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),pickSh,setupShCb)};
 const setupShCb=id=>{pickSh=id};
@@ -680,7 +697,7 @@ function fail(msg){
   const was=creating;
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
-  if(curGame=='elder'){applyPc(themePc);view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
+  if(curGame=='elder'){applyEPc(themeEPc);view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
   if(was){applyPc(themePc);applySh(themeSh);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby');$('lerr').textContent=msg}
 }
@@ -770,7 +787,7 @@ document.querySelectorAll('#tmode button').forEach(b=>b.onclick=()=>setMode(b.da
 document.addEventListener('keydown',e=>{if(e.key!='Escape')return;if(!$('th').classList.contains('hide'))closeTheme();});
 $('leave').onclick=leave;
 // game hub
-$('kij').onclick=()=>{curGame='kij';view('lobby')};
+$('kij').onclick=()=>{curGame='kij';applyPc(themePc);view('lobby')};
 $('hback').onclick=()=>{$('lerr').textContent='';view('hub')};
 $('kicon').innerHTML=shapeSVG('var(--y)','wizard');
 (()=>{
@@ -935,7 +952,7 @@ function edRender(){
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
-const edSnap=()=>({game:'elder',seq:ED.seq,B:ED.B,E:ED.E,turn:ED.turn,left:ED.left,moved:ED.moved,lone:ED.lone,over:ED.over,win:ED.win,note:ED.note,mvs:ED.mvs,pc:curPc});
+const edSnap=()=>({game:'elder',seq:ED.seq,B:ED.B,E:ED.E,turn:ED.turn,left:ED.left,moved:ED.moved,lone:ED.lone,over:ED.over,win:ED.win,note:ED.note,mvs:ED.mvs,pc:curEPc});
 function edPush(reset){if(inRoom)send({t:'state',reset:!!reset,state:edSnap()})}
 function edApply(d,force,quiet){
   const tile=v=>Number.isInteger(v)&&v>=0&&v<25;
@@ -948,7 +965,7 @@ function edApply(d,force,quiet){
   ED.seq=d.seq;ED.B=d.B;ED.E=d.E.map(Boolean);ED.turn=d.turn;ED.left=d.left;ED.moved=d.moved;ED.lone=d.lone;
   ED.over=!!d.over;ED.win=d.win=='Y'||d.win=='G'?d.win:null;ED.note=String(d.note||'').slice(0,200);ED.mvs=d.mvs;
   edSel=null;
-  if(typeof d.pc=='string'&&PCS[d.pc]&&d.pc!==curPc)applyPc(d.pc);
+  if(typeof d.pc=='string'&&EPCS[d.pc]&&d.pc!==curEPc)applyEPc(d.pc);
   if(!force&&!quiet&&d.mvs.length){
     if(!reduce)edAnim=d.mvs;
     sfx(ED.over&&!oldOver&&ED.win?'win':d.mvs.length>1?'take':'move');
@@ -961,8 +978,8 @@ function edHello(m){
   view('egame');edRender();
 }
 function edOpenLobby(){
-  pickPc=themePc;$('epcn').textContent=pcName(pickPc);
-  drawPc($('epc'),pickPc,id=>{themePc=pickPc=id;applyPc(id);saveTheme();$('epcn').textContent=pcName(id)});
+  applyEPc(themeEPc);$('epcn').textContent=epcName(themeEPc);
+  drawPc($('epc'),themeEPc,id=>{themeEPc=id;applyEPc(id);saveTheme();$('epcn').textContent=epcName(id)},EPCS);
 }
 function edEnter(c,create){
   c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -970,13 +987,13 @@ function edEnter(c,create){
   $('elerr').textContent='Connecting...';
   dropWs();curGame='elder';botLevel=null;clearTimeout(botTimer);
   code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
-  ED.seq=0;edInit();connect();
+  applyEPc(themeEPc);ED.seq=0;edInit();connect();
 }
 function edLocal(){
-  dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;applyPc(themePc);edInit();view('egame');edRender();
+  dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;applyEPc(themeEPc);edInit();view('egame');edRender();
 }
 function edLeave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';applyPc(themePc);
+  dropWs();inRoom=false;live=false;creating=false;role='both';applyEPc(themeEPc);
   $('spec').classList.add('hide');view('elobby');$('elerr').textContent='';edOpenLobby();
 }
 function edNewGame(){
@@ -984,7 +1001,7 @@ function edNewGame(){
   edInit();ED.seq++;edRender();edPush(true);
 }
 $('eld').onclick=()=>{curGame='elder';$('elerr').textContent='';edOpenLobby();view('elobby')};
-$('ehback').onclick=()=>view('hub');
+$('ehback').onclick=()=>{applyPc(themePc);view('hub')};
 $('ecreate').onclick=()=>edEnter(rand(),true);
 $('ejoin').onclick=()=>edEnter($('ecode').value,false);
 $('ecode').onkeydown=e=>{if(e.key=='Enter')edEnter($('ecode').value,false)};
@@ -993,7 +1010,7 @@ $('ereset').onclick=edNewGame;
 $('ewnew').onclick=edNewGame;
 $('ewview').onclick=()=>{edDismissed=true;edRender()};
 $('eleave').onclick=edLeave;
-$('eicon').innerHTML=edUnit('var(--y)',true);
+$('eicon').innerHTML=edUnit(EPCS[themeEPc][1],true);
 </script>
 </body>
 </html>
