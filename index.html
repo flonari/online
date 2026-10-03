@@ -17,18 +17,18 @@ h2{font-size:1.1rem;margin:0}
 .mode{padding:2px 12px;font-size:.8rem;margin-top:8px}
 .seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
 .card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
-#lobby,#setup,#elobby{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-#lobby hr,#elobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
+#lobby,#setup,#elobby,#clobby{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+#lobby hr,#elobby hr,#clobby hr{width:100%;border:0;border-top:1px solid var(--line);margin:6px 0}
 .row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
 .or{color:var(--mut);font-size:.85rem}
 .hint{margin:0;color:var(--mut);font-size:.85rem}
-#lerr,#serr,#elerr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
+#lerr,#serr,#elerr,#cerr{margin:0;min-height:1.5em;color:var(--mut);font-size:.9rem}
 .sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--fg);padding:0;cursor:pointer}
 .sw[aria-pressed=true],.shp[aria-pressed=true]{outline:3px solid var(--hl);outline-offset:2px}
 .shp{width:44px;height:44px;border-radius:10px;border:2px solid var(--fg);background:var(--card);padding:4px;cursor:pointer;display:flex}
 .shp svg{width:100%;height:100%}
-#game,#egame{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
-#stat,#estat{align-self:center;padding:3px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;text-align:center}
+#game,#egame,#cgame{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+#stat,#estat,#cstat{align-self:center;padding:3px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;text-align:center}
 #spec{position:fixed;left:12px;bottom:12px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--mut);font-size:.85rem;box-shadow:var(--shadow);z-index:10}
 .side{display:flex;gap:10px;width:100%}
 .pl{flex:1;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);font-size:.9rem;line-height:1.4;transition:border-color .2s,box-shadow .2s}
@@ -47,11 +47,11 @@ h2{font-size:1.1rem;margin:0}
 .c.t::after{content:"";position:absolute;inset:8%;border:3px solid var(--ph,var(--hl));border-radius:4px}
 .c svg{position:absolute;inset:11%;width:78%;height:78%;transition:transform .2s}
 .c svg.x{transform:rotate(90deg)}
-#win,#ewin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
+#win,#ewin,#cwin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);border-radius:8px;z-index:5}
 .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,8,8,.65);backdrop-filter:blur(3px);z-index:20}
 .wc{background:var(--card);color:var(--fg);border:2px solid var(--fg);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
 #wt{font-size:1.5rem;margin:0}
-#msg,#emsg{min-height:3em;text-align:center;font-size:1.05rem}
+#msg,#emsg,#cmsg{min-height:3em;text-align:center;font-size:1.05rem}
 .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 button.a{font:inherit;padding:8px 16px;border-radius:8px;border:2px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s}
 button.a:hover:not(:disabled){background:var(--line)}
@@ -90,7 +90,14 @@ h1 .ch{display:inline-block;animation:wave 1.6s steps(1,end) infinite;animation-
 .fr.rev{animation-direction:reverse}
 @keyframes flow{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){h1 .ch{animation:none}.fr{animation:none}}
-#ebw{position:relative;width:100%;max-width:420px}
+#ebw,#cbw{position:relative;width:100%;max-width:420px}
+#cboard{display:grid;grid-template-columns:repeat(7,1fr);width:100%;aspect-ratio:1;border:4px solid var(--d);border-radius:0;overflow:hidden;box-shadow:var(--shadow)}
+body.cw h1{font-size:2rem;letter-spacing:.04em}
+body.cw .card{border-radius:4px}
+body.cw button.a{border-radius:2px}
+body.cw .pl{border-radius:4px}
+body.cw .sw{border-radius:3px}
+body.cw #cboard .c{box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .c svg.dim{opacity:.45}
 /* Elder Dance: same family as Kijutsu, with small differences */
 body.ed h1{font-variant:small-caps;letter-spacing:.12em;font-weight:700}
@@ -117,6 +124,10 @@ body.ed .sw{border-radius:8px}
       <span class="gi" id="eicon"></span>
       <span><span class="gt">Elder Dance</span><span class="gd">Guide your Wise Elder across the board. Two-player online or local.</span></span>
     </button>
+    <button class="gc" id="cow" type="button">
+      <span class="gi" id="cicon"></span>
+      <span><span class="gt">Cylinders of the Wise</span><span class="gd">Throw your Stone Cylinder across the board. Two-player online or local.</span></span>
+    </button>
     <button class="gc" type="button" disabled>
       <span class="gi">?</span>
       <span><span class="gt">More games</span><span class="gd">Coming soon</span></span>
@@ -127,7 +138,7 @@ body.ed .sw{border-radius:8px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.13</p>
+  <p class="sub">v1.14</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -196,7 +207,7 @@ body.ed .sw{border-radius:8px}
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
+  <div class="row"><button class="a" data-elv="easy">Easy</button><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
   <p class="hint">Against the bot you play first and the bot plays second.</p>
   <hr>
   <h2>Board palette</h2>
@@ -222,6 +233,99 @@ body.ed .sw{border-radius:8px}
   <div id="emsg" role="status"></div>
   <div class="controls"><button class="a" id="ereset">New game</button><button class="a" id="eleave">Leave</button></div>
 </section>
+
+<section id="clobby" class="card hide">
+  <div class="row"><button class="a" id="chback" type="button">&larr; All games</button></div>
+  <h2>Play online</h2>
+  <div class="row"><button class="a primary" id="ccreate">Create room</button></div>
+  <div class="or">or join an existing room with its code</div>
+  <div class="row"><input id="ccode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="cjoin">Join</button></div>
+  <p class="hint">The host plays the first color and moves first. Anyone else watches. A code only joins a room that already exists.</p>
+  <hr>
+  <h2>Play locally</h2>
+  <div class="row"><button class="a" id="clocal">Play on this device</button></div>
+  <hr>
+  <h2>Board palette</h2>
+  <div class="row" id="cpal"></div>
+  <h2>Pawn colors</h2>
+  <div class="row" id="cpc"></div>
+  <p class="hint" id="cpcn"></p>
+  <p id="cerr" role="status"></p>
+</section>
+
+<section id="cgame" class="hide">
+  <div id="cstat" role="status"></div>
+  <div class="side"><div class="pl" id="cpY"></div><div class="pl" id="cpG"></div></div>
+  <div id="cbw">
+    <div id="cboard"></div>
+    <div id="cwin" class="hide" role="alertdialog" aria-live="polite">
+      <div class="wc">
+        <h2 id="cwt"></h2>
+        <div class="row"><button class="a primary" id="cwnew">New game</button><button class="a" id="cwview">View board</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="cmsg" role="status"></div>
+  <div class="controls"><button class="a primary hide" id="cdone">End turn</button><button class="a" id="creset">New game</button><button class="a" id="cleave">Leave</button></div>
+</section>
+
+<details class="card hide" id="rules"><summary>Rules</summary>
+<p>Move one non-exhausted wizard to an empty tile touching (including diagonally) another of your wizards. You can't move to a tile with 3 or more enemy wizards around it. A moved wizard is exhausted (shown turned sideways); when all yours are exhausted they refresh. A wizard with 3 or more enemies around it is captured. With fewer than 5 wizards on the board, spend your turn placing a reserve wizard on an empty tile of your home row (it arrives exhausted). Reduce your opponent to 2 wizards on the board to win.</p></details>
+<details class="card hide" id="erules"><summary>Rules</summary>
+<p>Each side has 3 guards and 1 Wise Elder, starting as shown on the board. On your turn move 2 different units (the very first move of the game is only 1 unit). A unit slides any number of tiles in a straight line, orthogonal or diagonal, over empty tiles only. When a unit stops next to enemy units (any of the 8 tiles around it), each of them is pushed 1 tile directly away, if that tile is empty. At the end of your turn all your units must form one orthogonally connected cluster, or you lose. A unit with no orthogonal friend at the start of your turn is lonesome and can't move that turn, so rescue it. If your Wise Elder stands on the far edge at the end of your turn and your units are connected, you win. If you can't take a full turn that ends connected, you lose.</p></details>
+<details class="card hide" id="crules"><summary>Rules</summary>
+<p>Each side has 4 Messengers and 1 Stone Cylinder, set up as shown on the board. The first color starts. On your turn move one of your Messengers 1 or 2 steps in a straight line in any of the 8 directions, over empty tiles only. It must then Throw: pick a unit on one of the 8 tiles around it, and that unit lands on the tile on the exact opposite side of the Messenger. That tile must be on the board and empty. You can throw your own Stone Cylinder and any Messenger, but never the enemy Stone Cylinder. An enemy Messenger you throw is stunned: it can't move on its owner's next turn, but it can still be thrown. After a throw, if other non-stunned Messengers of yours stand next to the landing tile, you may throw that unit again with one of them, once per Messenger. A Messenger that can't move to a tile where it can throw can't be moved. Get your Stone Cylinder onto the row at the far end to win at once. If you have no legal move you pass.</p></details>
+<details class="card patch hide" id="patch"><summary>Patch notes</summary>
+<h3>v1.14<span>Oct 3, 2026</span></h3>
+<ul><li>New third game on the hub: Cylinders of the Wise, with its own blue board and pawn colors. Play it online with room codes or on one device.</li>
+<li>Elder Dance now has an Easy bot as well as Normal and Hard.</li></ul>
+<h3>v1.13<span>Oct 3, 2026</span></h3>
+<ul><li>Elder Dance has its own board palettes: Green (the default), Badland, Sky and Plum.</li>
+<li>Play Elder Dance against a bot on Normal or Hard.</li></ul>
+<h3>v1.12<span>Oct 3, 2026</span></h3>
+<ul><li>Elder Dance now looks much closer to Kijutsu, with only small style differences.</li>
+<li>Elder Dance has its own pawn color pairs, with Coral and Teal as the default.</li></ul>
+<h3>v1.11<span>Oct 3, 2026</span></h3>
+<ul><li>New second game on the hub: Elder Dance, with its own look. Play it online with room codes or on one device.</li></ul>
+<h3>v1.10<span>Oct 2, 2026</span></h3>
+<ul><li>Removed the Theme button inside Kijutsu. Theme settings are now only on the game picker.</li></ul>
+<h3>v1.09<span>Oct 2, 2026</span></h3>
+<ul><li>Move highlights, the selected pawn ring and the active player's panel now use the color of the pawns.</li>
+<li>Bug fixes.</li></ul>
+<h3>v1.08<span>Oct 2, 2026</span></h3>
+<ul><li>New game hub: the site opens on flow.state with a list of games. Pick Kijutsu to play, and use "All games" to come back.</li>
+<li>The hub has a slowly drifting "flow.state" text background.</li></ul>
+<h3>v1.07<span>Oct 2, 2026</span></h3>
+<ul><li>Create room now has a Pawn shape option: Wizard, Pawn or Hat. It only changes the look, and everyone in the room sees it.</li></ul>
+<h3>v1.06<span>Oct 1, 2026</span></h3>
+<ul><li>Play against a bot on Easy, Normal or Hard.</li>
+<li>Pawn color pairs, plus a Randomise option for the palette and pawn colors.</li>
+<li>Sounds for moves, captures and wins.</li>
+<li>New win rule: reduce your opponent to 2 wizards on the board.</li>
+<li>Fixed a crash that stopped the board from showing in some screens.</li></ul>
+<h3>v1.05<span>Oct 1, 2026</span></h3>
+<ul><li>The Theme button now opens a window to pick Auto, Light or Dark and your palette. It is saved on your device with cookies.</li>
+<li>The palette you pick in Create room is saved as your theme.</li>
+<li>Pieces now slide across the board and the landing tile flashes when your opponent moves. New wizards pop in.</li></ul>
+<h3>v1.04<span>Oct 1, 2026</span></h3>
+<ul><li>Every palette now has a light and a dark version.</li>
+<li>Added a Theme button under the title to switch between Auto (follows your device), Light and Dark.</li></ul>
+<h3>v1.03<span>Oct 1, 2026</span></h3>
+<ul><li>Spectator count is shown in the bottom left during online games.</li>
+<li>Typing a code now only joins rooms that already exist. Rooms are made with Create room.</li>
+<li>Create room menu: pick a custom or random room code and a color palette.</li>
+<li>The host can pick a new palette whenever they start a new game.</li></ul>
+<h3>v1.02<span>Sep 30, 2026</span></h3>
+<ul><li>Added a win screen.</li>
+<li>Reserve wizards are now shown as balls at the sides of the board.</li>
+<li>Added a Header Animation.</li></ul>
+<h3>v1.01<span>Sep 30, 2026</span></h3>
+<ul><li>Added these patch notes.</li>
+<li>Now only the host can restart or create a new game.</li>
+<li>Patch notes are hidden while in a game.</li></ul>
+<h3>v1.0<span>Sep 29, 2026</span></h3>
+<ul><li>initial release</li></ul>
+</details>
 </main>
 
 <div id="spec" class="hide" role="status"></div>
@@ -264,6 +368,12 @@ const EPALS={
   sky:P('Sky','#e4eff7 #f3f9fd #14283a #8dbbe0 #3f76a8 #55728a #c4d9ea #ffd96b','#0f1923 #172633 #dcebf7 #5b8db8 #28506f #8fb0c8 #2a4357 #ffd96b'),
   plum:P('Plum','#efe6f3 #f9f3fc #2a1a33 #b99ad0 #6d4a8c #765f87 #d9c9e4 #c9f27a','#19111f #251830 #efe2f7 #8c6aaa #46295f #b49fc4 #3e2c4d #c9f27a')
 };
+// Cylinders of the Wise palettes (blue is its default)
+const CPALS={
+  blue:P('Blue','#e9eef5 #f6f8fc #14233a #f2f5fa #3f76b0 #55708f #c9d6e6 #f2b84b','#0f1722 #172233 #e3ecf7 #8aa0bd #2a4c78 #8fa6c2 #28384f #f2b84b'),
+  slate:P('Slate','#eceef0 #f8f9fa #1f2328 #f4f5f6 #667085 #6a7078 #d5d9de #4aa3ff','#14161a #1d2025 #e8eaed #9aa1ad #3a404a #9aa1ad #2f343c #4aa3ff'),
+  rose:P('Rose','#f6e9ec #fcf4f6 #3a1d27 #f7eef0 #b4607a #86616d #ebcdd5 #5cc8a0','#1f1217 #2c1a21 #f6e4ea #a88a95 #6e3446 #c5a0ad #4a2e38 #5cc8a0')
+};
 // pawn color sets: id -> [host color name, host color, guest color name, guest color]
 const PCS={
   classic:['Yellow','#f0c987','Green','#7fae5a'],
@@ -281,6 +391,13 @@ const EPCS={
   ember:['Crimson','#c8404f','Mint','#7fd6b0'],
   dusk:['Orange','#f09a45','Indigo','#5a56b8'],
   stone:['Silver','#cfd3da','Charcoal','#4b4f5c']
+};
+const CPCS={
+  wise:['Beige','#e8c98a','Navy','#26335c'],
+  ivory:['Ivory','#f1ecdf','Black','#262631'],
+  sand:['Sand','#d9b98a','Teal','#2f8f95'],
+  rose:['Rose','#e48aa0','Forest','#2d5a3d'],
+  gold:['Gold','#e6b83a','Violet','#5b3f99']
 };
 const SHAPES={
   wizard:['Wizard','<circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/>'],
@@ -324,13 +441,13 @@ function applyEPc(id){
 }
 const epcName=id=>EPCS[id][0]+' (host) vs '+EPCS[id][2];
 const pcName=id=>PCS[id][0]+' (host) vs '+PCS[id][2];
-let mode='auto',themePal='classic',shownPal='classic',shownMap=PALS,themeEPal='grass';
+let mode='auto',themePal='classic',shownPal='classic',shownMap=PALS,themeEPal='grass',themeCPal='blue',themeCPc='wise',curCPc='wise';
 const mq=matchMedia('(prefers-color-scheme: dark)');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
 const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
-const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc);ck('kj-epal',themeEPal)};
+const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc);ck('kj-epal',themeEPal);ck('kj-cpal',themeCPal);ck('kj-cpawn',themeCPc)};
 function applyPal(id,map=PALS){
   if(!map[id])id=Object.keys(map)[0];
   shownPal=id;shownMap=map;
@@ -355,7 +472,7 @@ function setMode(m,save){
   document.querySelectorAll('#tmode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==m));
   if(save)saveTheme();
   applyPal(shownPal,shownMap);
-  ['spal','tpal','epal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb,e._map)});
+  ['spal','tpal','epal','cpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb,e._map)});
 }
 mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
 (()=>{const t=(rc('kj-theme')||'').split('|');
@@ -365,7 +482,9 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   const pc=rc('kj-pawn');if(PCS[pc])themePc=pickPc=pc;applyPc(themePc);
   const sh=rc('kj-shape');if(SHAPES[sh])themeSh=pickSh=sh;applySh(themeSh);
   const ep=rc('kj-epawn');if(EPCS[ep])themeEPc=curEPc=ep;
-  const epl=rc('kj-epal');if(EPALS[epl])themeEPal=epl})();
+  const epl=rc('kj-epal');if(EPALS[epl])themeEPal=epl;
+  const cpl=rc('kj-cpal');if(CPALS[cpl])themeCPal=cpl;
+  const cpw=rc('kj-cpawn');if(CPCS[cpw])themeCPc=curCPc=cpw})();
 const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
 const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),pickSh,setupShCb)};
 const setupShCb=id=>{pickSh=id};
@@ -377,16 +496,19 @@ function openTheme(){
 }
 function closeTheme(){$('th').classList.add('hide');const e=$('spal');if(e._cb)drawPal(e,pick,e._cb)}
 function view(v){
-  ['hub','lobby','setup','game','elobby','egame'].forEach(x=>$(x).classList.toggle('hide',x!=v));
-  const ed=v=='elobby'||v=='egame',kj=v=='lobby'||v=='setup'||v=='game';
+  ['hub','lobby','setup','game','elobby','egame','clobby','cgame'].forEach(x=>$(x).classList.toggle('hide',x!=v));
+  const ed=v=='elobby'||v=='egame',cw=v=='clobby'||v=='cgame',kj=v=='lobby'||v=='setup'||v=='game';
   document.body.classList.toggle('ed',ed);
+  document.body.classList.toggle('cw',cw);
   $('hdr').classList.toggle('hide',v=='hub');
   $('flowbg').classList.toggle('hide',v!='hub');
   $('patch').classList.toggle('hide',!(v=='lobby'||v=='setup'));
   $('rules').classList.toggle('hide',!kj);
   $('erules').classList.toggle('hide',!ed);
-  if(v!='hub')setTitle(ed?'Elder Dance':'Kijutsu');
-  document.title=v=='hub'?'flow.state':ed?'Elder Dance':'Kijutsu';
+  $('crules').classList.toggle('hide',!cw);
+  const name=ed?'Elder Dance':cw?'Cylinders of the Wise':'Kijutsu';
+  if(v!='hub')setTitle(name);
+  document.title=v=='hub'?'flow.state':name;
 }
 function setTitle(t){
   const h=$('title');if(h.dataset.t===t)return;
@@ -661,6 +783,7 @@ function fail(msg){
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
   if(curGame=='elder'){edTheme();view('elobby');$('elerr').textContent=msg;edOpenLobby();return}
+  if(curGame=='cotw'){cwTheme();view('clobby');$('cerr').textContent=msg;cwOpenLobby();return}
   if(was){applyPc(themePc);applySh(themeSh);view('setup');$('serr').textContent=msg}
   else{curPal=themePal;applyPal(themePal);applyPc(themePc);applySh(themeSh);view('lobby');$('lerr').textContent=msg}
 }
@@ -673,20 +796,21 @@ function connect(){
     if(m.t=='hello'){
       creating=false;role=m.role;peers=m.peers;live=true;
       if(curGame=='elder'){edHello(m);return}
+      if(curGame=='cotw'){cwHello(m);return}
       // the hello state is the room's truth, so it always replaces whatever was on screen
       if(m.state)apply(m.state,true,true);
       else if(role!='S'&&(role=='Y'||seq>0)){seq=Math.max(seq,1);push(true)}
       view('game');render();
-    }else if(m.t=='state')(curGame=='elder'?edApply:apply)(m.state,m.force);
-    else if(m.t=='peers'){peers=m.peers;curGame=='elder'?edRender():render()}
+    }else if(m.t=='state')(curGame=='elder'?edApply:curGame=='cotw'?cwApply:apply)(m.state,m.force);
+    else if(m.t=='peers'){peers=m.peers;({elder:edRender,cotw:cwRender}[curGame]||render)()}
     else if(m.t=='err')fail(String(m.msg||'Something went wrong.'));
   };
   s.onclose=()=>{
     if(s!==ws)return;
     live=false;
     if(inRoom){
-      if($(curGame=='elder'?'egame':'game').classList.contains('hide'))(curGame=='elder'?$('elerr'):creating?$('serr'):$('lerr')).textContent='Could not reach the server, retrying...';
-      curGame=='elder'?edRender():render();setTimeout(()=>{if(inRoom&&s===ws)connect()},1500);
+      if($({elder:'egame',cotw:'cgame'}[curGame]||'game').classList.contains('hide'))$({elder:'elerr',cotw:'cerr'}[curGame]||(creating?'serr':'lerr')).textContent='Could not reach the server, retrying...';
+      ({elder:edRender,cotw:cwRender}[curGame]||render)();setTimeout(()=>{if(inRoom&&s===ws)connect()},1500);
     }
   };
 }
@@ -886,6 +1010,11 @@ function edBotChoose(level){
   edTurnsOn(ED.B,ED.E,me,ED.left,ED.lone,[],turns);
   if(!turns.length)return [];
   turns.forEach(t=>{t.v=edAfterMine(t.B,t.E,me)});
+  if(level=='easy'){
+    const w=turns.filter(t=>t.v>=9000);
+    if(w.length&&Math.random()<.5)return w[0].mvs;
+    return turns[Math.random()*turns.length|0].mvs;
+  }
   turns.sort((a,b)=>b.v-a.v);
   const top=turns[0].v;
   if(top>=9000)return turns[0].mvs;
@@ -1056,6 +1185,252 @@ $('ewnew').onclick=edNewGame;
 $('ewview').onclick=()=>{edDismissed=true;edRender()};
 $('eleave').onclick=edLeave;
 $('eicon').innerHTML=edUnit(EPCS[themeEPc][1],true);
+
+// ================= Cylinders of the Wise =================
+const CW={B:[],K:[],S:[],turn:'Y',ph:'m',mover:-1,cur:-1,used:[],over:false,win:null,note:'',seq:0,mvs:[]};
+let cwSel=null,cwAnim=null,cwDismissed=false;
+const CWD=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const cwIn=(r,c)=>r>=0&&r<7&&c>=0&&c<7;
+const cwPiece=(fill,k,cls)=>k==2
+  ?`<svg viewBox="0 0 24 24" class="${cls||''}"><circle cx="12" cy="12" r="10" fill="${fill}" stroke="#2b1d1d" stroke-width="1.4"/><circle cx="12" cy="12" r="5.6" fill="none" stroke="#2b1d1d" stroke-opacity=".55" stroke-width="1.2"/></svg>`
+  :`<svg viewBox="0 0 24 24" class="${cls||''}"><g fill="${fill}" stroke="#2b1d1d" stroke-width=".8">${SHAPES.pawn[1]}</g></svg>`;
+function applyCPc(id){
+  if(!CPCS[id])id='wise';
+  curCPc=id;const v=CPCS[id],st=document.documentElement.style;
+  NAME.Y=v[0];NAME.G=v[2];st.setProperty('--y',v[1]);st.setProperty('--g',v[3]);
+}
+const cpcName=id=>CPCS[id][0]+' (host) vs '+CPCS[id][2];
+function cwTheme(){applyPal(themeCPal,CPALS);applyCPc(themeCPc)}
+// throws a Messenger standing on m could make right now: [{u: unit tile, L: landing tile}]
+function cwThrowsFrom(B,K,m){
+  const r=m/7|0,c=m%7,own=B[m],out=[];
+  for(const [dr,dc] of CWD){
+    const ur=r+dr,uc=c+dc,lr=r-dr,lc=c-dc;
+    if(!cwIn(ur,uc)||!cwIn(lr,lc))continue;
+    const u=ur*7+uc,L=lr*7+lc;
+    if(!B[u]||B[L])continue;
+    if(K[u]==2&&B[u]!==own)continue;
+    out.push({u,L});
+  }
+  return out;
+}
+function cwTargetsOf(i,p){
+  if(CW.B[i]!==p||CW.K[i]!=1||CW.S[i])return[];
+  const r=i/7|0,c=i%7,out=[];
+  for(const [dr,dc] of CWD){
+    for(let k=1;k<=2;k++){
+      const y=r+dr*k,x=c+dc*k;
+      if(!cwIn(y,x))break;
+      const t=y*7+x;
+      if(CW.B[t])break;
+      const B=CW.B.slice(),K=CW.K.slice();B[t]=B[i];K[t]=1;B[i]=null;K[i]=0;
+      if(cwThrowsFrom(B,K,t).length)out.push(t);
+    }
+  }
+  return out;
+}
+const cwHasMove=p=>{for(let i=0;i<49;i++)if(CW.B[i]===p&&CW.K[i]==1&&cwTargetsOf(i,p).length)return true;return false};
+function cwChain(){
+  const L=CW.cur,out=[];if(L<0)return out;
+  const r=L/7|0,c=L%7,p=CW.turn;
+  for(const [dr,dc] of CWD){
+    const y=r+dr,x=c+dc;if(!cwIn(y,x))continue;
+    const m=y*7+x;
+    if(CW.B[m]!==p||CW.K[m]!=1||CW.S[m]||CW.used.includes(m))continue;
+    const ty=2*y-r,tx=2*x-c;if(!cwIn(ty,tx))continue;
+    const T=ty*7+tx;if(CW.B[T])continue;
+    out.push({m,L:T});
+  }
+  return out;
+}
+function cwFinish(w,msg){CW.over=true;CW.win=w;CW.note=msg}
+function cwClearStun(p){for(let i=0;i<49;i++)if(CW.B[i]===p&&CW.K[i]==1)CW.S[i]=false}
+function cwStartTurn(){
+  let tries=0;
+  while(!CW.over&&!cwHasMove(CW.turn)&&tries<2){
+    const p=CW.turn;CW.note=NAME[p]+' has no legal move and passes.';
+    cwClearStun(p);CW.turn=opp(p);tries++;
+  }
+  if(tries>=2){CW.over=true;CW.win=null;CW.note='Nobody can move. Draw.'}
+}
+function cwEndTurn(){
+  const p=CW.turn;cwClearStun(p);
+  CW.turn=opp(p);CW.ph='m';CW.mover=-1;CW.cur=-1;CW.used=[];
+  cwStartTurn();
+}
+function cwInit(){
+  CW.B=Array(49).fill(null);CW.K=Array(49).fill(0);CW.S=Array(49).fill(false);
+  const put=(r,c,p,k)=>{CW.B[r*7+c]=p;CW.K[r*7+c]=k};
+  put(0,3,'Y',2);[[1,2],[1,3],[1,4],[2,3]].forEach(([r,c])=>put(r,c,'Y',1));
+  put(6,3,'G',2);[[4,3],[5,2],[5,3],[5,4]].forEach(([r,c])=>put(r,c,'G',1));
+  Object.assign(CW,{turn:'Y',ph:'m',mover:-1,cur:-1,used:[],over:false,win:null,note:'',mvs:[]});
+  cwSel=null;cwDismissed=false;cwStartTurn();
+}
+function cwMove(i,t){
+  CW.B[t]=CW.B[i];CW.K[t]=1;CW.S[t]=false;CW.B[i]=null;CW.K[i]=0;CW.S[i]=false;
+  CW.mover=t;CW.ph='t';CW.used=[];CW.cur=-1;CW.mvs=[[i,t]];CW.note='';cwSel=null;
+  CW.seq++;cwAnim=CW.mvs;sfx('move');cwRender();cwPush();
+}
+function cwThrow(m,u){
+  const r=m/7|0,c=m%7,ur=u/7|0,uc=u%7,L=(2*r-ur)*7+(2*c-uc),p=CW.turn;
+  const stun=CW.K[u]==1&&CW.B[u]!==p;
+  CW.B[L]=CW.B[u];CW.K[L]=CW.K[u];CW.S[L]=stun?true:CW.S[u];
+  CW.B[u]=null;CW.K[u]=0;CW.S[u]=false;
+  CW.used.push(m);CW.cur=L;CW.mvs=[[u,L]];
+  let snd=stun?'take':'move';
+  if(CW.K[L]==2&&CW.B[L]===p&&(L/7|0)==(p=='Y'?6:0)){cwFinish(p,NAME[p]+"'s Stone Cylinder reached the far side!");snd='win'}
+  else if(cwChain().length)CW.ph='c';
+  else cwEndTurn();
+  CW.seq++;cwAnim=CW.mvs;sfx(snd);cwRender();cwPush();
+}
+function cwDone(){
+  if(!cwCan()||CW.ph!=='c')return;
+  cwEndTurn();CW.seq++;CW.mvs=[];cwRender();cwPush();
+}
+const cwCan=()=>!CW.over&&(role=='both'||(role==CW.turn&&live));
+function cwClick(i){
+  if(!cwCan())return;
+  if(CW.ph=='m'){
+    if(cwSel!==null&&cwTargetsOf(cwSel,CW.turn).includes(i)){cwMove(cwSel,i);return}
+    cwSel=(cwTargetsOf(i,CW.turn).length&&cwSel!==i)?i:null;cwRender();
+  }else if(CW.ph=='t'){
+    if(cwThrowsFrom(CW.B,CW.K,CW.mover).some(x=>x.u==i))cwThrow(CW.mover,i);
+  }else if(CW.ph=='c'){
+    if(cwChain().some(x=>x.m==i))cwThrow(i,CW.cur);
+  }
+}
+function cwPlay(cells,mvs){
+  mvs.forEach(([f,t])=>{
+    const to=cells[t],from=cells[f],svg=to&&to.querySelector('svg');if(!svg||!from)return;
+    const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();
+    to.style.zIndex=3;
+    const an=svg.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`},{transform:'translate(0px,0px)'}],{duration:340,easing:'cubic-bezier(.2,.8,.2,1)'});
+    an.onfinish=an.oncancel=()=>{to.style.zIndex=''};
+  });
+  const last=mvs.length?cells[mvs[mvs.length-1][1]]:null;
+  if(last){const own=CW.B[mvs[mvs.length-1][1]]||CW.turn;
+    const hl=getComputedStyle(document.documentElement).getPropertyValue(own=='Y'?'--y':'--g').trim()||'#c8f06a';
+    last.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'})}
+}
+function cwRender(){
+  const fl=role=='Y';
+  let tg=[];
+  if(cwCan()){
+    if(CW.ph=='m'&&cwSel!==null)tg=cwTargetsOf(cwSel,CW.turn);
+    else if(CW.ph=='t')tg=cwThrowsFrom(CW.B,CW.K,CW.mover).map(x=>x.u);
+    else if(CW.ph=='c')tg=cwChain().map(x=>x.m);
+  }
+  const hot=CW.ph=='m'?cwSel:CW.ph=='t'?CW.mover:CW.ph=='c'?CW.cur:-1;
+  const el=$('cboard');el.innerHTML='';el.style.setProperty('--ph',COL[CW.turn]);const cells=[];
+  for(let k=0;k<49;k++){
+    const i=fl?48-k:k,v=CW.B[i],b=document.createElement('button');
+    b.className='c'+(((i/7|0)+i%7)%2?' dk':'')+(hot===i&&!CW.over?' sel':'')+(tg.includes(i)?' t':'');
+    b.setAttribute('aria-label','Row '+((i/7|0)+1)+' column '+(i%7+1)+(v?', '+NAME[v]+(CW.K[i]==2?' Stone Cylinder':' Messenger')+(CW.S[i]?' stunned':''):''));
+    if(v)b.innerHTML=cwPiece(COL[v],CW.K[i],CW.S[i]?'x dim':'');
+    b.onclick=()=>cwClick(i);el.appendChild(b);cells[i]=b;
+  }
+  const a=cwAnim;cwAnim=null;if(a&&a.length&&!reduce)cwPlay(cells,a);
+  const stage={m:'Move',t:'Throw',c:'Chain throw'}[CW.ph];
+  ['Y','G'].forEach(p=>{
+    const d=$('cp'+p),n=CW.B.filter((x,i)=>x===p&&CW.K[i]==1).length,st=CW.B.filter((x,i)=>x===p&&CW.K[i]==1&&CW.S[i]).length;
+    d.className='pl'+(CW.turn==p&&!CW.over?' on':'');d.style.borderColor=CW.turn==p&&!CW.over?COL[p]:'';
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
+  });
+  const host=role=='both'||role=='Y';
+  $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;
+  $('cdone').classList.toggle('hide',!(cwCan()&&CW.ph=='c'));
+  if(!CW.over)cwDismissed=false;
+  const sw=CW.over&&!cwDismissed;$('cwin').classList.toggle('hide',!sw);
+  if(sw){
+    $('cwt').innerHTML=CW.win?`<i class="dot" style="background:${COL[CW.win]}"></i>${role==CW.win?'You win!':NAME[CW.win]+' wins!'}`:"It's a draw!";
+    $('cwnew').classList.toggle('hide',!host);$('cwnew').disabled=inRoom&&!live;
+  }
+  let m='';
+  if(CW.over)m=CW.note||'Game over.';
+  else{
+    const pre=CW.note&&CW.ph=='m'?CW.note+' ':'';
+    if(inRoom&&!live)m='Connecting...';
+    else if(role=='S')m=pre+"Watching. It's "+NAME[CW.turn]+"'s turn.";
+    else if(role!='both'&&role!=CW.turn)m=pre+'Waiting for '+NAME[CW.turn]+'...';
+    else{
+      const who=role=='both'?NAME[CW.turn]+"'s turn: ":'Your turn: ';
+      m=pre+who+(CW.ph=='m'?(cwSel!==null?'choose where to move (1 or 2 steps in a line).':'select a Messenger to move.')
+        :CW.ph=='t'?'now throw a highlighted unit.'
+        :'throw it again with a highlighted Messenger, or end your turn.');
+    }
+  }
+  $('cmsg').textContent=m;
+  if(inRoom){
+    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
+    const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
+    $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
+  }else $('cstat').textContent='Local game on this device';
+  const n=peers.S||0;
+  $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
+}
+const cwSnap=()=>({game:'cotw',seq:CW.seq,B:CW.B,K:CW.K,S:CW.S,turn:CW.turn,ph:CW.ph,mover:CW.mover,cur:CW.cur,used:CW.used,over:CW.over,win:CW.win,note:CW.note,mvs:CW.mvs,pc:curCPc});
+function cwPush(reset){if(inRoom)send({t:'state',reset:!!reset,state:cwSnap()})}
+function cwApply(d,force,quiet){
+  const tile=v=>Number.isInteger(v)&&v>=0&&v<49;
+  const ok=d&&d.game==='cotw'&&Number.isInteger(d.seq)&&Array.isArray(d.B)&&d.B.length==49&&d.B.every(v=>v===null||v==='Y'||v==='G')&&
+    Array.isArray(d.K)&&d.K.length==49&&d.K.every(v=>v===0||v===1||v===2)&&Array.isArray(d.S)&&d.S.length==49&&
+    (d.turn=='Y'||d.turn=='G')&&['m','t','c'].includes(d.ph)&&Number.isInteger(d.mover)&&d.mover>=-1&&d.mover<49&&
+    Number.isInteger(d.cur)&&d.cur>=-1&&d.cur<49&&Array.isArray(d.used)&&d.used.every(tile)&&
+    Array.isArray(d.mvs)&&d.mvs.every(x=>Array.isArray(x)&&x.length==2&&tile(x[0])&&tile(x[1]));
+  if(!ok||(!force&&d.seq<=CW.seq))return;
+  const oldOver=CW.over,oldStun=CW.S.filter(Boolean).length;
+  CW.seq=d.seq;CW.B=d.B;CW.K=d.K;CW.S=d.S.map(Boolean);CW.turn=d.turn;CW.ph=d.ph;CW.mover=d.mover;CW.cur=d.cur;CW.used=d.used;
+  CW.over=!!d.over;CW.win=d.win=='Y'||d.win=='G'?d.win:null;CW.note=String(d.note||'').slice(0,200);CW.mvs=d.mvs;
+  cwSel=null;
+  if(typeof d.pc=='string'&&CPCS[d.pc]&&d.pc!==curCPc)applyCPc(d.pc);
+  if(!force&&!quiet&&d.mvs.length){
+    if(!reduce)cwAnim=d.mvs;
+    sfx(CW.over&&!oldOver&&CW.win?'win':CW.S.filter(Boolean).length>oldStun?'take':'move');
+  }
+  cwRender();
+}
+function cwHello(m){
+  if(m.state)cwApply(m.state,true,true);
+  else if(role!='S'&&(role=='Y'||CW.seq>0)){CW.seq=Math.max(CW.seq,1);cwPush(true)}
+  view('cgame');cwRender();
+}
+function cwOpenLobby(){
+  cwTheme();
+  drawPal($('cpal'),themeCPal,id=>{themeCPal=id;applyPal(id,CPALS);saveTheme()},CPALS);
+  $('cpcn').textContent=cpcName(themeCPc);
+  drawPc($('cpc'),themeCPc,id=>{themeCPc=id;applyCPc(id);saveTheme();$('cpcn').textContent=cpcName(id)},CPCS);
+}
+function cwEnter(c,create){
+  c=c.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(c.length<3){$('cerr').textContent='Enter a code of 3 to 12 letters or digits.';return}
+  $('cerr').textContent='Connecting...';
+  dropWs();curGame='cotw';botLevel=null;clearTimeout(botTimer);edBot=null;clearTimeout(edBotTimer);
+  code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
+  cwTheme();CW.seq=0;cwInit();connect();
+}
+function cwLocal(){
+  dropWs();inRoom=false;curGame='cotw';role='both';CW.seq=0;cwTheme();cwInit();view('cgame');cwRender();
+}
+function cwLeave(){
+  dropWs();inRoom=false;live=false;creating=false;role='both';cwTheme();
+  $('spec').classList.add('hide');view('clobby');$('cerr').textContent='';cwOpenLobby();
+}
+function cwNewGame(){
+  if(role=='G'||role=='S')return;
+  cwInit();CW.seq++;cwRender();cwPush(true);
+}
+$('cow').onclick=()=>{curGame='cotw';$('cerr').textContent='';cwOpenLobby();view('clobby')};
+$('chback').onclick=()=>{edUntheme();view('hub')};
+$('ccreate').onclick=()=>cwEnter(rand(),true);
+$('cjoin').onclick=()=>cwEnter($('ccode').value,false);
+$('ccode').onkeydown=e=>{if(e.key=='Enter')cwEnter($('ccode').value,false)};
+$('clocal').onclick=cwLocal;
+$('creset').onclick=cwNewGame;
+$('cwnew').onclick=cwNewGame;
+$('cwview').onclick=()=>{cwDismissed=true;cwRender()};
+$('cdone').onclick=cwDone;
+$('cleave').onclick=cwLeave;
+$('cicon').innerHTML=cwPiece(CPCS[themeCPc][1],2);
 </script>
 </body>
 </html>
