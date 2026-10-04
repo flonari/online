@@ -145,7 +145,7 @@ body.ed .sw{border-radius:8px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.19</p>
+  <p class="sub">v1.20</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -215,7 +215,7 @@ body.ed .sw{border-radius:8px}
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
   <div class="row"><button class="a" data-elv="easy">Easy</button><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
-  <p class="hint">Against the bot you play first and the bot plays second.</p>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
   <p id="elerr" role="status"></p>
 </section>
 
@@ -1183,8 +1183,8 @@ function edEnter(c,create){
 }
 function edLocal(level){
   dropWs();inRoom=false;curGame='elder';role='both';ED.seq=0;
-  clearTimeout(edBotTimer);edPlan=[];edRnd=false;edBot=level||null;
-  edTheme();edInit();view('egame');edRender();
+  clearTimeout(edBotTimer);edPlan=[];edRnd=!!level;edBot=level||null;
+  edTheme();if(level)edRandomise();edInit();view('egame');edRender();
 }
 function edLeave(){
   dropWs();inRoom=false;live=false;creating=false;role='both';edRnd=false;edBot=null;clearTimeout(edBotTimer);edPlan=[];edTheme();
