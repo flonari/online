@@ -98,10 +98,26 @@ body.ed .pl{border-radius:8px;border-width:2px}
 body.ed #eboard{border-radius:6px;border-width:6px}
 body.ed #eboard .c{box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 body.ed .sw{border-radius:8px}
+/* moving shape backgrounds: one look per game */
+#gbg{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+#gbg .sh{position:absolute;color:var(--c,var(--fg));opacity:.14;width:var(--s);height:var(--s)}
+#gbg .sh svg{display:block;width:100%;height:100%}
+.k1 .sh{left:var(--x);bottom:calc(var(--s)*-1);animation:kjup var(--d) linear var(--dl) infinite}
+@keyframes kjup{0%{transform:translate(0,0) scale(.7);opacity:0}12%{opacity:.16}88%{opacity:.16}100%{transform:translate(var(--w),-115vh) scale(1.15);opacity:0}}
+.k2 .sh{top:var(--y);left:calc(var(--s)*-1);animation:edx var(--d) linear var(--dl) infinite}
+.k2 .sh svg{animation:edy var(--sw) ease-in-out infinite alternate}
+@keyframes edx{to{transform:translateX(calc(100vw + var(--s)*2))}}
+@keyframes edy{from{transform:translateY(-22px)}to{transform:translateY(22px)}}
+.k3 .sh{top:var(--y);left:calc(var(--s)*-1);animation:cwx var(--d) linear var(--dl) infinite}
+.k3 .sh svg{animation:cws var(--sw) linear infinite}
+@keyframes cwx{to{transform:translate(calc(100vw + var(--s)*2),var(--dy))}}
+@keyframes cws{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#gbg .sh,#gbg .sh svg{animation:none!important}}
 </style>
 </head>
 <body>
 <div id="flowbg" aria-hidden="true"></div>
+<div id="gbg" aria-hidden="true"></div>
 <main class="wrap">
 <section id="hub">
   <h1>flow.state</h1>
@@ -129,7 +145,7 @@ body.ed .sw{border-radius:8px}
 
 <header id="hdr" class="hide">
   <h1 id="title" aria-label="Kijutsu">Kijutsu</h1>
-  <p class="sub">v1.16</p>
+  <p class="sub">v1.19</p>
 </header>
 
 <section id="lobby" class="card hide">
@@ -245,6 +261,9 @@ body.ed .sw{border-radius:8px}
   <hr>
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="clocal">Play on this device</button></div>
+  <div class="or">or play against the bot</div>
+  <div class="row"><button class="a" data-cv="easy">Easy</button><button class="a" data-cv="normal">Normal</button><button class="a" data-cv="hard">Hard</button></div>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
   <p id="cerr" role="status"></p>
 </section>
 
@@ -354,11 +373,11 @@ const EPCS={
   stone:['Silver','#cfd3da','Charcoal','#4b4f5c']
 };
 const CPCS={
-  wise:['Beige','#ecd29e','Navy','#223a6b'],
-  ivory:['Ivory','#f4efe3','Ink','#232430'],
-  amber:['Amber','#f0a93a','Teal','#1f8a8a'],
-  coral:['Coral','#ee7d6b','Forest','#2c6a47'],
-  royal:['Gold','#e8be45','Violet','#5d3fa0']
+  wise:['Beige','#f0d28a','Indigo','#2b34c9'],
+  ivory:['Ivory','#f6f1e4','Ruby','#c8153f'],
+  amber:['Amber','#ffb21f','Cobalt','#1f4fe0'],
+  coral:['Coral','#ff7a66','Emerald','#0f8f4f'],
+  royal:['Gold','#f2c230','Purple','#6a2bd9']
 };
 const SHAPES={
   wizard:['Wizard','<circle cx="12" cy="5" r="3.6"/><path d="M8 10h8l6 2v3l-5-1-1 3 3 6h-4l-3-5-3 5H5l3-6-1-3-5 1v-3z"/>'],
@@ -466,9 +485,45 @@ function view(v){
   $('rules').classList.toggle('hide',!kj);
   $('erules').classList.toggle('hide',!ed);
   $('crules').classList.toggle('hide',!cw);
+  setBg(v=='hub'?'':ed?'k2':cw?'k3':'k1');
   const name=ed?'Elder Dance':cw?'Thronder':'Kijutsu';
   if(v!='hub')setTitle(name);
   document.title=v=='hub'?'flow.state':name;
+}
+const BGS={
+  circle:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg>',
+  spark:'<svg viewBox="0 0 24 24"><path d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z" fill="currentColor"/></svg>',
+  elder:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7 15.5l-.8-6 3.6 2.7L12 7.5l2.2 4.7 3.6-2.7-.8 6z" style="fill:var(--bg)"/></svg>',
+  tri:'<svg viewBox="0 0 24 24"><path d="M12 3L21 20H3z" fill="currentColor"/></svg>',
+  ring:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3.2"/></svg>'
+};
+// k1 Kijutsu: teleport sparks drifting up. k2 Elder Dance: swaying pawns crossing. k3 Cylinders: tumbling thrown pieces.
+const BGCFG={
+  k1:{n:22,shapes:['circle','spark'],size:[14,56]},
+  k2:{n:14,shapes:['circle','elder'],size:[30,72]},
+  k3:{n:16,shapes:['tri','ring'],size:[26,66]}
+};
+function setBg(kind){
+  const g=$('gbg');
+  if(g.dataset.k===kind)return;
+  g.dataset.k=kind;g.className=kind;g.innerHTML='';
+  if(!kind)return;
+  const R=(a,b)=>a+Math.random()*(b-a),cf=BGCFG[kind],cols=['var(--y)','var(--g)','var(--fg)'];
+  for(let i=0;i<cf.n;i++){
+    const d=document.createElement('div'),st=d.style;
+    d.className='sh';d.innerHTML=BGS[cf.shapes[i%cf.shapes.length]];
+    st.setProperty('--s',R(cf.size[0],cf.size[1]).toFixed(0)+'px');
+    st.setProperty('--c',cols[i%cols.length]);
+    st.setProperty('--x',R(0,96).toFixed(1)+'vw');
+    st.setProperty('--y',R(2,92).toFixed(1)+'vh');
+    st.setProperty('--w',R(-10,10).toFixed(1)+'vw');
+    st.setProperty('--dy',R(-35,35).toFixed(1)+'vh');
+    const dur=kind=='k1'?R(14,30):kind=='k2'?R(30,60):R(24,50);
+    st.setProperty('--d',dur.toFixed(1)+'s');
+    st.setProperty('--dl','-'+R(0,dur).toFixed(1)+'s');
+    st.setProperty('--sw',(kind=='k2'?R(2.5,5):R(6,14)).toFixed(1)+'s');
+    g.appendChild(d);
+  }
 }
 function setTitle(t){
   const h=$('title');if(h.dataset.t===t)return;
@@ -1160,7 +1215,8 @@ $('eicon').innerHTML=edUnit(EPCS[themeEPc][1],true);
 
 // ================= Cylinders of the Wise =================
 const CW={B:[],K:[],S:[],turn:'Y',ph:'m',mover:-1,cur:-1,used:[],over:false,win:null,note:'',seq:0,mvs:[]};
-let cwSel=null,cwAnim=null,cwDismissed=false;
+let cwSel=null,cwAnim=null,cwDismissed=false,cwBot=null,cwBotTimer=0,cwPlan=[];
+const CWBOT='G';
 const CWD=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 const cwIn=(r,c)=>r>=0&&r<7&&c>=0&&c<7;
 // Messenger: a plain triangle. Stone Cylinder: a plain circle with a ring.
@@ -1242,7 +1298,7 @@ function cwInit(){
 function cwMove(i,t){
   CW.B[t]=CW.B[i];CW.K[t]=1;CW.S[t]=false;CW.B[i]=null;CW.K[i]=0;CW.S[i]=false;
   CW.mover=t;CW.ph='t';CW.used=[];CW.cur=-1;CW.mvs=[[i,t]];CW.note='';cwSel=null;
-  CW.seq++;cwAnim=CW.mvs;sfx('move');cwRender();cwPush();
+  CW.seq++;cwAnim=CW.mvs;sfx('move');cwRender();cwPush();cwBotSchedule();
 }
 function cwThrow(m,u){
   const r=m/7|0,c=m%7,ur=u/7|0,uc=u%7,L=(2*r-ur)*7+(2*c-uc),p=CW.turn;
@@ -1254,13 +1310,124 @@ function cwThrow(m,u){
   if(CW.K[L]==2&&CW.B[L]===p&&(L/7|0)==(p=='Y'?6:0)){cwFinish(p,NAME[p]+"'s Stone Cylinder reached the far side!");snd='win'}
   else if(cwChain().length)CW.ph='c';
   else cwEndTurn();
-  CW.seq++;cwAnim=CW.mvs;sfx(snd);cwRender();cwPush();
+  CW.seq++;cwAnim=CW.mvs;sfx(snd);cwRender();cwPush();cwBotSchedule();
 }
 function cwDone(){
   if(!cwCan()||CW.ph!=='c')return;
-  cwEndTurn();CW.seq++;CW.mvs=[];cwRender();cwPush();
+  cwEndTurn();CW.seq++;CW.mvs=[];cwRender();cwPush();cwBotSchedule();
 }
-const cwCan=()=>!CW.over&&(role=='both'||(role==CW.turn&&live));
+// ---- Cylinders of the Wise bot ----
+const cwGoal=p=>p=='Y'?6:0;
+function cwSimThrow(B,K,S,p,m,u){
+  const r=m/7|0,c=m%7,ur=u/7|0,uc=u%7,L=(2*r-ur)*7+(2*c-uc);
+  const b=B.slice(),k=K.slice(),s=S.slice(),stun=k[u]==1&&b[u]!==p;
+  b[L]=b[u];k[L]=k[u];s[L]=stun?true:s[u];b[u]=null;k[u]=0;s[u]=false;
+  return {B:b,K:k,S:s,L,win:k[L]==2&&b[L]===p&&(L/7|0)==cwGoal(p)};
+}
+function cwChainOn(B,K,S,p,L,used){
+  const out=[],r=L/7|0,c=L%7;
+  for(const [dr,dc] of CWD){
+    const y=r+dr,x=c+dc;if(!cwIn(y,x))continue;
+    const m=y*7+x;
+    if(B[m]!==p||K[m]!=1||S[m]||used.includes(m))continue;
+    const ty=2*y-r,tx=2*x-c;if(!cwIn(ty,tx)||B[ty*7+tx])continue;
+    out.push(m);
+  }
+  return out;
+}
+function cwExtend(r,used,p,steps,out){
+  out.push({steps,B:r.B,K:r.K,S:r.S,win:r.win});
+  if(r.win)return;
+  for(const m of cwChainOn(r.B,r.K,r.S,p,r.L,used)){
+    const r2=cwSimThrow(r.B,r.K,r.S,p,m,r.L);
+    cwExtend(r2,used.concat(m),p,steps.concat([{t:'t',m,u:r.L}]),out);
+  }
+}
+// every complete turn p could play from this position
+function cwPlansOn(B,K,S,p){
+  const out=[];
+  for(let i=0;i<49;i++){
+    if(B[i]!==p||K[i]!=1||S[i])continue;
+    const r=i/7|0,c=i%7;
+    for(const [dr,dc] of CWD){
+      for(let k=1;k<=2;k++){
+        const y=r+dr*k,x=c+dc*k;if(!cwIn(y,x))break;
+        const t=y*7+x;if(B[t])break;
+        const b=B.slice(),k2=K.slice(),s=S.slice();
+        b[t]=p;k2[t]=1;s[t]=false;b[i]=null;k2[i]=0;s[i]=false;
+        for(const th of cwThrowsFrom(b,k2,t)){
+          const r1=cwSimThrow(b,k2,s,p,t,th.u);
+          cwExtend(r1,[t],p,[{t:'m',f:i,to:t},{t:'t',m:t,u:th.u}],out);
+        }
+      }
+    }
+  }
+  return out;
+}
+const cwCheb=(a,b)=>Math.max(Math.abs((a/7|0)-(b/7|0)),Math.abs(a%7-b%7));
+function cwEval(B,K,S,me){
+  const q=opp(me);let cm=-1,cq=-1;
+  for(let i=0;i<49;i++)if(K[i]==2){if(B[i]===me)cm=i;else cq=i}
+  const prog=(i,p)=>p=='Y'?(i/7|0):6-(i/7|0);
+  let v=0;
+  if(cm>=0)v+=40*prog(cm,me);
+  if(cq>=0)v-=40*prog(cq,q);
+  for(let i=0;i<49;i++){
+    if(K[i]!=1)continue;
+    if(B[i]===me){if(cm>=0&&cwCheb(i,cm)<=2)v+=4;if(S[i])v-=7}
+    else{if(cq>=0&&cwCheb(i,cq)<=2)v-=4;if(S[i])v+=7}
+  }
+  return v;
+}
+const cwUnstun=(B,K,S,p)=>S.map((v,i)=>B[i]===p&&K[i]==1?false:v);
+const cwPlanValue=(pl,me)=>pl.win?10000:cwEval(pl.B,pl.K,cwUnstun(pl.B,pl.K,pl.S,me),me);
+function cwBotChoose(level){
+  const me=CWBOT,q=opp(me),plans=cwPlansOn(CW.B,CW.K,CW.S,me);
+  if(!plans.length)return [];
+  plans.forEach(p=>{p.v=cwPlanValue(p,me)});
+  if(level=='easy'){
+    const w=plans.filter(p=>p.win);
+    if(w.length&&Math.random()<.5)return w[0].steps;
+    return plans[Math.random()*plans.length|0].steps;
+  }
+  plans.sort((a,b)=>b.v-a.v);
+  if(plans[0].win)return plans[0].steps;
+  if(level=='normal'){
+    const near=plans.filter(p=>p.v>=plans[0].v-6);
+    return near[Math.random()*near.length|0].steps;
+  }
+  const deadline=performance.now()+1500;
+  let best=-Infinity,ties=[];
+  for(const p of plans.slice(0,14)){
+    const S2=cwUnstun(p.B,p.K,p.S,me),replies=cwPlansOn(p.B,p.K,S2,q);
+    let worst=Infinity;
+    for(const r of replies){
+      const v=r.win?-10000:cwEval(r.B,r.K,cwUnstun(r.B,r.K,r.S,q),me);
+      if(v<worst)worst=v;
+      if(worst<best)break;
+    }
+    if(!replies.length)worst=cwEval(p.B,p.K,S2,me);
+    if(worst>best){best=worst;ties=[p]}else if(worst==best)ties.push(p);
+    if(performance.now()>deadline&&ties.length)break;
+  }
+  return ties[Math.random()*ties.length|0].steps;
+}
+function cwBotSchedule(){
+  clearTimeout(cwBotTimer);cwBotTimer=0;
+  if(cwBot&&!inRoom&&!CW.over&&CW.turn==CWBOT)cwBotTimer=setTimeout(cwBotStep,reduce?250:650);
+}
+function cwBotStep(){
+  cwBotTimer=0;
+  if(!cwBot||inRoom||CW.over||CW.turn!=CWBOT)return;
+  if(CW.ph=='m'){cwPlan=cwBotChoose(cwBot);if(!cwPlan.length)return}
+  const st=cwPlan.shift();
+  if(!st){cwEndTurn();CW.seq++;CW.mvs=[];cwRender();cwBotSchedule();return}
+  if(st.t=='m'&&CW.ph=='m'&&cwTargetsOf(st.f,CWBOT).includes(st.to))cwMove(st.f,st.to);
+  else if(st.t=='t'&&CW.ph=='t'&&cwThrowsFrom(CW.B,CW.K,CW.mover).some(x=>x.u==st.u))cwThrow(CW.mover,st.u);
+  else if(st.t=='t'&&CW.ph=='c'&&cwChain().some(x=>x.m==st.m))cwThrow(st.m,CW.cur);
+  else{cwPlan=[];if(CW.ph=='c'){cwEndTurn();CW.seq++;CW.mvs=[];cwRender();cwBotSchedule()}}
+}
+const cwCan=()=>!CW.over&&(role=='both'?!(cwBot&&CW.turn==CWBOT):(role==CW.turn&&live));
 function cwClick(i){
   if(!cwCan())return;
   if(CW.ph=='m'){
@@ -1286,7 +1453,7 @@ function cwPlay(cells,mvs){
     last.animate([{boxShadow:`inset 0 0 0 4px ${hl}`},{boxShadow:'inset 0 0 0 0 transparent'}],{duration:800,easing:'ease-out'})}
 }
 function cwRender(){
-  const fl=role=='Y';
+  const fl=role=='Y'||!!cwBot,me=p=>role==p||(!!cwBot&&p=='Y');
   let tg=[];
   if(cwCan()){
     if(CW.ph=='m'&&cwSel!==null)tg=cwTargetsOf(cwSel,CW.turn);
@@ -1307,7 +1474,7 @@ function cwRender(){
   ['Y','G'].forEach(p=>{
     const d=$('cp'+p),n=CW.B.filter((x,i)=>x===p&&CW.K[i]==1).length,st=CW.B.filter((x,i)=>x===p&&CW.K[i]==1&&CW.S[i]).length;
     d.className='pl'+(CW.turn==p&&!CW.over?' on':'');d.style.borderColor=CW.turn==p&&!CW.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${role==p?' (you)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
   });
   const host=role=='both'||role=='Y';
   $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;
@@ -1315,7 +1482,7 @@ function cwRender(){
   if(!CW.over)cwDismissed=false;
   const sw=CW.over&&!cwDismissed;$('cwin').classList.toggle('hide',!sw);
   if(sw){
-    $('cwt').innerHTML=CW.win?`<i class="dot" style="background:${COL[CW.win]}"></i>${role==CW.win?'You win!':NAME[CW.win]+' wins!'}`:"It's a draw!";
+    $('cwt').innerHTML=CW.win?`<i class="dot" style="background:${COL[CW.win]}"></i>${me(CW.win)?'You win!':cwBot?'The bot wins!':NAME[CW.win]+' wins!'}`:"It's a draw!";
     $('cwnew').classList.toggle('hide',!host);$('cwnew').disabled=inRoom&&!live;
   }
   let m='';
@@ -1325,8 +1492,9 @@ function cwRender(){
     if(inRoom&&!live)m='Connecting...';
     else if(role=='S')m=pre+"Watching. It's "+NAME[CW.turn]+"'s turn.";
     else if(role!='both'&&role!=CW.turn)m=pre+'Waiting for '+NAME[CW.turn]+'...';
+    else if(cwBot&&CW.turn==CWBOT)m=pre+'The bot is thinking...';
     else{
-      const who=role=='both'?NAME[CW.turn]+"'s turn: ":'Your turn: ';
+      const who=role=='both'&&!cwBot?NAME[CW.turn]+"'s turn: ":'Your turn: ';
       m=pre+who+(CW.ph=='m'?(cwSel!==null?'choose where to move (1 or 2 steps in a line).':'select a Messenger to move.')
         :CW.ph=='t'?'now throw a highlighted unit.'
         :'throw it again with a highlighted Messenger, or end your turn.');
@@ -1337,7 +1505,7 @@ function cwRender(){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
-  }else $('cstat').textContent='Local game on this device';
+  }else $('cstat').textContent=cwBot?'Local game vs bot ('+cwBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
 }
@@ -1387,22 +1555,25 @@ function cwEnter(c,create){
   const err=$(create?'cserr':'cerr');
   if(c.length<3){err.textContent='Enter a code of 3 to 12 letters or digits.';return}
   err.textContent='Connecting...';
-  dropWs();curGame='cotw';botLevel=null;clearTimeout(botTimer);edBot=null;clearTimeout(edBotTimer);
+  dropWs();curGame='cotw';botLevel=null;clearTimeout(botTimer);edBot=null;clearTimeout(edBotTimer);cwBot=null;clearTimeout(cwBotTimer);cwPlan=[];
   code=c;creating=!!create;inRoom=true;role='Y';peers={Y:false,G:false,S:0};
   cwRnd=!!create&&$('csrnd').checked;
   cwTheme();CW.seq=0;cwInit();connect();
 }
-function cwLocal(){
-  dropWs();inRoom=false;curGame='cotw';role='both';cwRnd=false;CW.seq=0;cwTheme();cwInit();view('cgame');cwRender();
+function cwLocal(level){
+  dropWs();inRoom=false;curGame='cotw';role='both';cwRnd=!!level;CW.seq=0;
+  clearTimeout(cwBotTimer);cwPlan=[];cwBot=level||null;
+  cwTheme();if(level)cwRandomise();cwInit();view('cgame');cwRender();
 }
 function cwLeave(){
-  dropWs();inRoom=false;live=false;creating=false;role='both';cwRnd=false;cwTheme();
+  dropWs();inRoom=false;live=false;creating=false;role='both';cwRnd=false;cwBot=null;clearTimeout(cwBotTimer);cwPlan=[];cwTheme();
   $('spec').classList.add('hide');view('clobby');$('cerr').textContent='';cwOpenLobby();
 }
 function cwNewGame(){
   if(role=='G'||role=='S')return;
+  clearTimeout(cwBotTimer);cwPlan=[];
   if(cwRnd)cwRandomise();
-  cwInit();CW.seq++;cwRender();cwPush(true);
+  cwInit();CW.seq++;cwRender();cwPush(true);cwBotSchedule();
 }
 $('cow').onclick=()=>{curGame='cotw';$('cerr').textContent='';cwOpenLobby();view('clobby')};
 $('chback').onclick=()=>{edUntheme();view('hub')};
@@ -1413,7 +1584,8 @@ $('cscode').onkeydown=e=>{if(e.key=='Enter')cwEnter($('cscode').value,true)};
 $('csback').onclick=()=>{dropWs();inRoom=false;creating=false;cwTheme();view('clobby')};
 $('cjoin').onclick=()=>cwEnter($('ccode').value,false);
 $('ccode').onkeydown=e=>{if(e.key=='Enter')cwEnter($('ccode').value,false)};
-$('clocal').onclick=cwLocal;
+$('clocal').onclick=()=>cwLocal(null);
+document.querySelectorAll('[data-cv]').forEach(b=>b.onclick=()=>cwLocal(b.dataset.cv));
 $('creset').onclick=cwNewGame;
 $('cwnew').onclick=cwNewGame;
 $('cwview').onclick=()=>{cwDismissed=true;cwRender()};
