@@ -35,12 +35,15 @@ const peers = r => {
 const send = (s, m) => { if (s.readyState === 1) s.send(JSON.stringify(m)); };
 const bc = (r, m, except) => { for (const s of r.socks) if (s !== except) send(s, m); };
 const okState = st => st && Number.isInteger(st.seq) && st.seq >= 0 &&
-  Array.isArray(st.B) && st.B.length === (st.game === 'cotw' ? 49 : 25) && st.B.every(v => v === null || v === 'Y' || v === 'G') &&
+  (st.game !== 'diag' || st.n === 6 || st.n === 8) &&
+  Array.isArray(st.B) && st.B.length === (st.game === 'diag' ? st.n * st.n : st.game === 'cotw' ? 49 : 25) && st.B.every(v => v === null || v === 'Y' || v === 'G') &&
   (st.turn === 'Y' || st.turn === 'G') &&
   (st.game === 'elder'
     ? Array.isArray(st.E) && st.E.length === 25
     : st.game === 'cotw'
       ? Array.isArray(st.K) && st.K.length === 49 && Array.isArray(st.S) && st.S.length === 49
+      : st.game === 'diag'
+        ? Array.isArray(st.D) && st.D.length === st.B.length
       : Array.isArray(st.X) && st.X.length === 25 && st.R && st.C);
 
 wss.on('connection', ws => {
@@ -50,7 +53,7 @@ wss.on('connection', ws => {
     let m; try { m = JSON.parse(raw); } catch { return; }
     if ((m.t === 'join' || m.t === 'create') && !ws.room) {
       if (typeof m.code !== 'string' || !/^[a-z0-9]{3,12}$/.test(m.code)) return send(ws, { t: 'err', msg: 'Bad room code. Use 3 to 12 letters or digits.' });
-      const game = m.game === 'elder' || m.game === 'cotw' ? m.game : 'kij';
+      const game = ['elder', 'cotw', 'diag'].includes(m.game) ? m.game : 'kij';
       const exists = rooms.has(m.code);
       if (m.t === 'create' && exists) return send(ws, { t: 'err', msg: 'That room code is already taken.' });
       if (m.t === 'join' && !exists) return send(ws, { t: 'err', msg: 'Room not found. Check the code, or create a room.' });
