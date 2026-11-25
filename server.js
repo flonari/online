@@ -65,14 +65,15 @@ wss.on('connection', ws => {
       const taken = [...r.socks].map(s => s.role);
       ws.role = ['Y', 'G'].find(x => !taken.includes(x)) || 'S';
       ws.room = r; ws.code = m.code; r.socks.add(ws);
-      send(ws, { t: 'hello', role: ws.role, state: r.state, peers: peers(r), game: r.game });
+      if (!r.host || !r.socks.has(r.host)) r.host = ws; // first one in (or the first back into an empty room) hosts
+      send(ws, { t: 'hello', role: ws.role, state: r.state, peers: peers(r), game: r.game, host: r.host === ws });
       bc(r, { t: 'peers', peers: peers(r) }, ws);
     } else if (m.t === 'state' && ws.room && ws.role !== 'S') {
       const r = ws.room, st = m.state;
       const ok = okState(st) && ((st.game || 'kij') === r.game) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
       if (ok) { r.state = st; bc(r, { t: 'state', state: st }, ws); }
       else if (r.state) send(ws, { t: 'state', state: r.state, force: true });
-    } else if (m.t === 'style' && ws.room && ws.role === 'Y') {
+    } else if (m.t === 'style' && ws.room && ws.room.host === ws) {
       // host-only: change palette / pawn colors / pawn shape at any time without touching the game position
       const r = ws.room, s = m.style && typeof m.style === 'object' ? m.style : {}, clean = {};
       for (const k of ['pal', 'pc', 'sh']) if (typeof s[k] === 'string' && /^[a-z]{1,12}$/.test(s[k])) clean[k] = s[k];
@@ -84,6 +85,12 @@ wss.on('connection', ws => {
   ws.on('close', () => {
     const r = ws.room; if (!r) return;
     r.socks.delete(ws);
+    if (r.host === ws) {
+      // host left: hand the room to the other player, else a spectator, and tell everyone
+      const rest = [...r.socks];
+      r.host = rest.find(s => s.role === 'Y') || rest.find(s => s.role === 'G') || rest[0] || null;
+      for (const s of rest) send(s, { t: 'host', you: s === r.host, left: true });
+    }
     bc(r, { t: 'peers', peers: peers(r) });
     if (!r.socks.size) r.timer = setTimeout(() => rooms.delete(ws.code), 30 * 60 * 1000);
   });
