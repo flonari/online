@@ -72,6 +72,13 @@ wss.on('connection', ws => {
       const ok = okState(st) && ((st.game || 'kij') === r.game) && (!r.state || (st.seq > r.state.seq && (m.reset === true || ws.role === r.state.turn)));
       if (ok) { r.state = st; bc(r, { t: 'state', state: st }, ws); }
       else if (r.state) send(ws, { t: 'state', state: r.state, force: true });
+    } else if (m.t === 'style' && ws.room && ws.role === 'Y') {
+      // host-only: change palette / pawn colors / pawn shape at any time without touching the game position
+      const r = ws.room, s = m.style && typeof m.style === 'object' ? m.style : {}, clean = {};
+      for (const k of ['pal', 'pc', 'sh']) if (typeof s[k] === 'string' && /^[a-z]{1,12}$/.test(s[k])) clean[k] = s[k];
+      if (!Object.keys(clean).length) return;
+      if (r.state) Object.assign(r.state, clean);
+      bc(r, { t: 'style', style: clean }, ws);
     }
   });
   ws.on('close', () => {
