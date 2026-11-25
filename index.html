@@ -324,6 +324,17 @@ body.ed #eboard { border-width: 6px; border-radius: 6px; }
 body.ed #eboard .c { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
 
 
+/* ---- shared style panel (room creation + host Style overlay) ---- */
+.sp { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.sec { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.stc { width: min(94vw, 420px); max-height: 90vh; overflow-y: auto; }
+#sty { background: rgba(20, 8, 8, .3); backdrop-filter: none; }
+@media (min-width: 900px) { #sty { justify-content: flex-end; padding-right: 5vw; } }
+.prv { display: flex; border: 3px solid var(--d); border-radius: var(--radius-sm); overflow: hidden; }
+.prv span { display: grid; place-items: center; width: 58px; height: 58px; background: var(--l); }
+.prv span:nth-child(even) { background: var(--d); }
+.prv svg { width: 74%; height: 74%; }
+
 /* ---- secret: one hidden tile per game background switches that game to DOS graphics ---- */
 .wrap { pointer-events: none; }
 .wrap > * { pointer-events: auto; }
@@ -442,15 +453,8 @@ body.dos::after {
   <h2>Create a room</h2>
   <div class="row"><input id="scode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="srand">Random</button></div>
   <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
-  <h2>Palette</h2>
-  <div class="row" id="spal"></div>
-  <p class="hint">Changes the site and board colors for this round.</p>
-  <h2>Pawn colors</h2>
-  <div class="row" id="spc"></div>
-  <p class="hint" id="spcn"></p>
-  <h2>Pawn shape</h2>
-  <div class="row" id="ssh"></div>
-  <p class="hint">Only changes how the pawns look. Both sides use the same shape.</p>
+  <div class="sp" id="spanel"></div>
+  <p class="hint">As host you can change all of this later with the Style button in the game.</p>
   <label class="ck"><input type="checkbox" id="srnd"> Randomise</label>
   <p class="hint">Every new game in this room gets a random palette and random pawn colors.</p>
   <p id="serr" role="status"></p>
@@ -474,7 +478,7 @@ body.dos::after {
     <div class="res" id="rG"></div>
   </div>
   <div id="msg" role="status"></div>
-  <div class="controls"><button class="a" id="place">Place a wizard</button><button class="a" id="reset">New game</button><button class="a" id="leave">Leave</button></div>
+  <div class="controls"><button class="a" id="place">Place a wizard</button><button class="a" id="reset">New game</button><button class="a hide" id="kstyle">Style</button><button class="a inv hide" id="kinv">Invite</button><button class="a" id="leave">Leave</button></div>
 </section>
 
 <section id="elobby" class="card hide">
@@ -497,15 +501,8 @@ body.dos::after {
   <h2>Create a room</h2>
   <div class="row"><input id="escode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="esrand">Random</button></div>
   <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
-  <h2>Board colors</h2>
-  <div class="row" id="epal"></div>
-  <p class="hint">Changes the board colors for this round.</p>
-  <h2>Pawn colors</h2>
-  <div class="row" id="epc"></div>
-  <p class="hint" id="epcn"></p>
-  <h2>Pawn shape</h2>
-  <div class="row" id="esh"></div>
-  <p class="hint">Only changes how the pawns look. Both sides use the same shape.</p>
+  <div class="sp" id="epanel"></div>
+  <p class="hint">As host you can change all of this later with the Style button in the game.</p>
   <label class="ck"><input type="checkbox" id="esrnd"> Randomize</label>
   <p class="hint">Every new game in this room gets random board colors and pawn colors.</p>
   <p id="eserr" role="status"></p>
@@ -525,7 +522,7 @@ body.dos::after {
     </div>
   </div>
   <div id="emsg" role="status"></div>
-  <div class="controls"><button class="a" id="ereset">New game</button><button class="a" id="eleave">Leave</button></div>
+  <div class="controls"><button class="a" id="ereset">New game</button><button class="a hide" id="estyle">Style</button><button class="a inv hide" id="einv">Invite</button><button class="a" id="eleave">Leave</button></div>
 </section>
 
 <section id="clobby" class="card hide">
@@ -548,15 +545,8 @@ body.dos::after {
   <h2>Create a room</h2>
   <div class="row"><input id="cscode" maxlength="12" autocomplete="off" aria-label="Room code"><button class="a" id="csrand">Random</button></div>
   <p class="hint">Type your own code (3 to 12 letters or digits) or roll a random one.</p>
-  <h2>Board colors</h2>
-  <div class="row" id="cpal"></div>
-  <p class="hint">Changes the board colors for this round.</p>
-  <h2>Pawn colors</h2>
-  <div class="row" id="cpc"></div>
-  <p class="hint" id="cpcn"></p>
-  <h2>Pawn shape</h2>
-  <div class="row" id="csh"></div>
-  <p class="hint">Only changes how the pawns look. Both sides use the same shape.</p>
+  <div class="sp" id="cpanel"></div>
+  <p class="hint">As host you can change all of this later with the Style button in the game.</p>
   <label class="ck"><input type="checkbox" id="csrnd"> Randomize</label>
   <p class="hint">Every new game in this room gets random board colors and pawn colors.</p>
   <p id="cserr" role="status"></p>
@@ -576,7 +566,7 @@ body.dos::after {
     </div>
   </div>
   <div id="cmsg" role="status"></div>
-  <div class="controls"><button class="a primary hide" id="cdone">End turn</button><button class="a" id="creset">New game</button><button class="a" id="cleave">Leave</button></div>
+  <div class="controls"><button class="a primary hide" id="cdone">End turn</button><button class="a" id="creset">New game</button><button class="a hide" id="cstyle">Style</button><button class="a inv hide" id="cinv">Invite</button><button class="a" id="cleave">Leave</button></div>
 </section>
 
 
@@ -592,6 +582,15 @@ body.dos::after {
 
 <div id="spec" class="hide" role="status"></div>
 
+<div id="sty" class="ov hide" role="dialog" aria-modal="true" aria-label="Room style">
+  <div class="wc stc">
+    <h2>Room style</h2>
+    <p class="hint">Changes reach everyone in the room right away.</p>
+    <div id="stybody" class="sp"></div>
+    <label class="ck"><input type="checkbox" id="styrnd"> Randomize every new game</label>
+    <div class="row"><button class="a" id="styshuf" type="button">Shuffle now</button><button class="a primary" id="stydone" type="button">Done</button></div>
+  </div>
+</div>
 <div id="egg" class="ov hide" role="dialog" aria-modal="true" aria-label="Catch the wizard">
   <div class="wc eggc">
     <h2>Catch the wizard</h2>
@@ -802,7 +801,7 @@ function setMode(m,save){
   document.querySelectorAll('#tmode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==m));
   if(save)saveTheme();
   applyPal(shownPal,shownMap);
-  ['spal','tpal','epal','cpal'].forEach(id=>{const e=$(id);if(e._cb)drawPal(e,e._cur,e._cb,e._map)});
+  ['tpal'].forEach(id=>{const e=$(id);if(e&&e._cb)drawPal(e,e._cur,e._cb,e._map)});
 }
 mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
 (()=>{const t=(rc('kj-theme')||'').split('|');
@@ -817,16 +816,14 @@ mq.addEventListener('change',()=>{if(mode=='auto')setMode('auto')});
   const cpw=rc('kj-cpawn');if(CPCS[cpw])themeCPc=curCPc=cpw;
   const esh=rc('kj-eshape');if(EDSH[esh])themeESh=curESh=esh;
   const csh=rc('kj-cshape');if(CWSH[csh])themeCSh=curCSh=csh;})();
-const setupCb=id=>{pick=themePal=curPal=id;applyPal(id);saveTheme()};
-const setupPcCb=id=>{pickPc=id;$('spcn').textContent=pcName(id);drawSh($('ssh'),pickSh,setupShCb)};
-const setupShCb=id=>{pickSh=id;curSh=id;setBg('k1')};
+// (style pickers now live in drawStyle / STY near the end of the script)
 function openTheme(){
   $('tpwrap').classList.toggle('hide',inRoom);
   $('thint').textContent=inRoom?'In online games the host picks the palette. Your light or dark choice still applies.':':3';
   if(!inRoom)drawPal($('tpal'),themePal,id=>{themePal=curPal=pick=id;applyPal(id);saveTheme()});
   $('th').classList.remove('hide');$('tdone').focus();
 }
-function closeTheme(){$('th').classList.add('hide');const e=$('spal');if(e._cb)drawPal(e,pick,e._cb)}
+function closeTheme(){$('th').classList.add('hide')}
 function view(v){
   ['hub','lobby','setup','game','elobby','esetup','egame','clobby','csetup','cgame'].forEach(x=>$(x).classList.toggle('hide',x!=v));
   const ed=v=='elobby'||v=='esetup'||v=='egame',cw=v=='clobby'||v=='csetup'||v=='cgame',kj=v=='lobby'||v=='setup'||v=='game';
@@ -1070,9 +1067,19 @@ function bgBattle(g,kind){
   bgSecret({ef,kind,cs,vw,vh,EW,EH,n,spots});
 }
 // one random floor tile per game: click it to toggle that game's DOS look (remembered in a cookie)
-const dosOn={k1:rc('kj-dos-k1')=='1',k2:rc('kj-dos-k2')=='1',k3:rc('kj-dos-k3')=='1'};
-// the hub (no kind) goes DOS too whenever any game has DOS on
-const applyDos=kind=>document.body.classList.toggle('dos',kind?!!dosOn[kind]:Object.values(dosOn).some(Boolean));
+// DOS is one switch for the whole site: the games and the game select all follow it
+let dosAll=rc('kj-dos')=='1';
+const applyDos=()=>document.body.classList.toggle('dos',dosAll);
+function setDos(v){
+  sfx('win');                       // beeps if DOS is on at this moment, recording otherwise
+  dosAll=v;ck('kj-dos',v?'1':'0');applyDos();
+}
+// Escape leaves DOS quickly (an open dialog gets its own Escape first)
+document.addEventListener('keydown',e=>{
+  if(e.key!='Escape'||!dosAll)return;
+  if(!$('th').classList.contains('hide')||!$('egg').classList.contains('hide')||!$('sty').classList.contains('hide'))return;
+  setDos(false);
+},true);
 function bgSecret({ef,kind,cs,vw,vh,EW,EH,n,spots}){
   const th=-14*Math.PI/180,co=Math.cos(th),si=Math.sin(th);
   const boxes=spots.map(([dx,dy])=>({x:Math.round((EW/2+dx*vw-n*cs/2)/cs)*cs,y:Math.round((EH/2+dy*vh-n*cs/2)/cs)*cs}));
@@ -1091,8 +1098,8 @@ function bgSecret({ef,kind,cs,vw,vh,EW,EH,n,spots}){
   b.type='button';b.className='dt';b.tabIndex=-1;b.setAttribute('aria-hidden','true');
   b.style.transform=`translate(${best.gx*cs}px,${best.gy*cs}px)`;
   b.onclick=()=>{
-    dosOn[kind]=!dosOn[kind];ck('kj-dos-'+kind,dosOn[kind]?'1':'0');
-    applyDos(kind);sfx('win');
+    if(dosAll){setDos(false);return}
+    dosAll=true;ck('kj-dos','1');applyDos();sfx('win');
   };
   ef.insertBefore(b,ef.children[1]||null);
 }
@@ -1343,7 +1350,7 @@ function render(){
   });
   const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
   const host=role=='both'||role=='Y';
-  $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;
+  $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;ctl('k');
   if(!over)dismissed=false;
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
   if(showWin){
@@ -1372,7 +1379,7 @@ function render(){
 }
 function dropWs(){const s=ws;ws=null;if(s)try{s.close()}catch(e){}}
 function fail(msg){
-  const was=creating;
+  const was=creating;$('sty').classList.add('hide');
   dropWs();inRoom=false;live=false;creating=false;rnd=false;
   $('spec').classList.add('hide');
   if(curGame=='elder'){edTheme();view(was?'esetup':'elobby');$(was?'eserr':'elerr').textContent=msg;return}
@@ -1396,6 +1403,7 @@ function connect(){
       view('game');render();
     }else if(m.t=='state')({elder:edApply,cotw:cwApply}[curGame]||apply)(m.state,m.force);
     else if(m.t=='peers'){peers=m.peers;({elder:edRender,cotw:cwRender}[curGame]||render)()}
+    else if(m.t=='style')applyStyle(m.style);
     else if(m.t=='err')fail(String(m.msg||'Something went wrong.'));
   };
   s.onclose=()=>{
@@ -1438,9 +1446,9 @@ function newGame(){
   init();endMove(true);
 }
 $('create').onclick=()=>{
-  pick=themePal;$('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
-  pickPc=themePc;pickSh=themeSh;$('spcn').textContent=pcName(pickPc);drawPc($('spc'),pickPc,setupPcCb);drawSh($('ssh'),pickSh,setupShCb);
-  drawPal($('spal'),pick,setupCb);view('setup');
+  pick=themePal;pickPc=themePc;pickSh=curSh=themeSh;
+  $('scode').value=rand();$('serr').textContent='';$('lerr').textContent='';
+  drawStyle($('spanel'),'kij');view('setup');
 };
 $('srand').onclick=()=>{$('scode').value=rand()};
 $('sstart').onclick=()=>enter($('scode').value,true);
@@ -1771,7 +1779,7 @@ function edRender(){
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
   });
   const host=role=='both'||role=='Y';
-  $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;
+  $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;ctl('e');
   if(!ED.over)edDismissed=false;
   const sw=ED.over&&!edDismissed;$('ewin').classList.toggle('hide',!sw);
   if(sw){
@@ -1838,8 +1846,7 @@ function drawPairSh(el,map,cur,cb,unit){
     el.appendChild(b);
   });
 }
-const drawEdSh=()=>drawPairSh($('esh'),EDSH,themeESh,id=>{themeESh=curESh=id;saveTheme();setBg('k2')},id=>edUnit(EPCS[themeEPc][1],true,'',id)+edUnit(EPCS[themeEPc][3],false,'',id));
-const drawCwSh=()=>drawPairSh($('csh'),CWSH,themeCSh,id=>{themeCSh=curCSh=id;saveTheme();setBg('k3')},id=>cwPiece(CPCS[themeCPc][1],1,'',id)+cwPiece(CPCS[themeCPc][3],2,'',id));
+// (shape pickers for Elder Dance and Thronder are built by drawStyle)
 function refreshHubIcons(){
   $('kicon').innerHTML=shapeSVG('var(--y)',themeSh);
   $('eicon').innerHTML=edUnit(EPCS[themeEPc][1],true,'',themeESh);
@@ -1895,10 +1902,7 @@ function flowPieces(){
 }
 function edOpenSetup(){
   edTheme();$('escode').value=rand();$('eserr').textContent='';
-  drawPal($('epal'),themeEPal,id=>{themeEPal=curEPal=id;applyPal(id,EPALS);saveTheme()},EPALS);
-  $('epcn').textContent=epcName(themeEPc);
-  drawPc($('epc'),themeEPc,id=>{themeEPc=id;applyEPc(id);saveTheme();$('epcn').textContent=epcName(id);drawEdSh()},EPCS);
-  drawEdSh();
+  drawStyle($('epanel'),'elder');
   view('esetup');
 }
 function edRandomise(){
@@ -2209,7 +2213,7 @@ function cwRender(){
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
   });
   const host=role=='both'||role=='Y';
-  $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;
+  $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;ctl('c');
   $('cdone').classList.toggle('hide',!(cwCan()&&CW.ph=='c'));
   if(!CW.over)cwDismissed=false;
   const sw=CW.over&&!cwDismissed;$('cwin').classList.toggle('hide',!sw);
@@ -2272,10 +2276,7 @@ function cwHello(m){
 function cwOpenLobby(){cwTheme()}
 function cwOpenSetup(){
   cwTheme();$('cscode').value=rand();$('cserr').textContent='';
-  drawPal($('cpal'),themeCPal,id=>{themeCPal=curCPal=id;applyPal(id,CPALS);saveTheme()},CPALS);
-  $('cpcn').textContent=cpcName(themeCPc);
-  drawPc($('cpc'),themeCPc,id=>{themeCPc=id;applyCPc(id);saveTheme();$('cpcn').textContent=cpcName(id);drawCwSh()},CPCS);
-  drawCwSh();
+  drawStyle($('cpanel'),'cotw');
   view('csetup');
 }
 function cwRandomise(){
@@ -2325,8 +2326,104 @@ $('cwnew').onclick=cwNewGame;
 $('cwview').onclick=()=>{cwDismissed=true;cwRender()};
 $('cdone').onclick=cwDone;
 $('cleave').onclick=cwLeave;
+
+// ================= Shared style panel: room creation + host "Style" overlay =================
+const STY={
+  kij:{pals:PALS,pcs:PCS,shapes:SHAPES,palT:'Palette',palH:'Changes the site and board colors.',bg:'k1',
+    pal:()=>curPal,pc:()=>curPc,sh:()=>curSh,
+    setPal:id=>{pick=themePal=curPal=id;applyPal(id,PALS);saveTheme()},
+    setPc:id=>{pickPc=themePc=id;applyPc(id);saveTheme()},
+    setSh:id=>{pickSh=themeSh=curSh=id;saveTheme()},
+    unit:id=>shapeSVG(COL.Y,id)+shapeSVG(COL.G,id),pcn:pcName,
+    prev:()=>[shapeSVG(COL.Y,curSh),shapeSVG(COL.G,curSh)],
+    adopt:s=>{if(PALS[s.pal]&&s.pal!==curPal){curPal=s.pal;applyPal(curPal,PALS)}if(PCS[s.pc]&&s.pc!==curPc)applyPc(s.pc);if(SHAPES[s.sh])curSh=s.sh},
+    shuffle:()=>randomise(),rnd:()=>rnd,setRnd:v=>{rnd=v},render:()=>render()},
+  elder:{pals:EPALS,pcs:EPCS,shapes:EDSH,palT:'Board colors',palH:'Changes the board colors.',bg:'k2',
+    pal:()=>curEPal,pc:()=>curEPc,sh:()=>curESh,
+    setPal:id=>{themeEPal=curEPal=id;applyPal(id,EPALS);saveTheme()},
+    setPc:id=>{themeEPc=id;applyEPc(id);saveTheme()},
+    setSh:id=>{themeESh=curESh=id;saveTheme()},
+    unit:id=>edUnit(COL.Y,true,'',id)+edUnit(COL.G,false,'',id),pcn:epcName,
+    prev:()=>[edUnit(COL.Y,true,'',curESh),edUnit(COL.Y,false,'',curESh),edUnit(COL.G,false,'',curESh),edUnit(COL.G,true,'',curESh)],
+    adopt:s=>{if(EPCS[s.pc]&&s.pc!==curEPc)applyEPc(s.pc);if(EDSH[s.sh])curESh=s.sh;if(EPALS[s.pal]&&s.pal!==curEPal){curEPal=s.pal;applyPal(curEPal,EPALS)}},
+    shuffle:()=>edRandomise(),rnd:()=>edRnd,setRnd:v=>{edRnd=v},render:()=>edRender()},
+  cotw:{pals:CPALS,pcs:CPCS,shapes:CWSH,palT:'Board colors',palH:'Changes the board colors.',bg:'k3',
+    pal:()=>curCPal,pc:()=>curCPc,sh:()=>curCSh,
+    setPal:id=>{themeCPal=curCPal=id;applyPal(id,CPALS);saveTheme()},
+    setPc:id=>{themeCPc=id;applyCPc(id);saveTheme()},
+    setSh:id=>{themeCSh=curCSh=id;saveTheme()},
+    unit:id=>cwPiece(COL.Y,1,'',id)+cwPiece(COL.G,2,'',id),pcn:cpcName,
+    prev:()=>[cwPiece(COL.Y,1,'',curCSh),cwPiece(COL.Y,2,'',curCSh),cwPiece(COL.G,2,'',curCSh),cwPiece(COL.G,1,'',curCSh)],
+    adopt:s=>{if(CPCS[s.pc]&&s.pc!==curCPc)applyCPc(s.pc);if(CWSH[s.sh])curCSh=s.sh;if(CPALS[s.pal]&&s.pal!==curCPal){curCPal=s.pal;applyPal(curCPal,CPALS)}},
+    shuffle:()=>cwRandomise(),rnd:()=>cwRnd,setRnd:v=>{cwRnd=v},render:()=>cwRender()}
+};
+const GVIEW={kij:'game',elder:'egame',cotw:'cgame'};
+// after any style change: refresh the background, repaint the board, and tell the room
+function styChanged(g){
+  const c=STY[g];
+  setBg(c.bg);
+  if(inRoom)send({t:'style',style:{pal:c.pal(),pc:c.pc(),sh:c.sh()}});
+  if(!$(GVIEW[g]).classList.contains('hide'))c.render();
+}
+function applyStyle(s){
+  const c=STY[curGame];if(!c||!s||typeof s!='object')return;
+  c.adopt(s);setBg(c.bg);
+  if(!$(GVIEW[curGame]).classList.contains('hide'))c.render();
+}
+function drawStyle(el,g){
+  const c=STY[g];el.innerHTML='';
+  const sec=(t,h)=>{
+    const d=document.createElement('div'),r=document.createElement('div'),t2=document.createElement('h2');
+    d.className='sec';r.className='row';t2.textContent=t;d.appendChild(t2);d.appendChild(r);
+    if(h){const p=document.createElement('p');p.className='hint';p.textContent=h;d.appendChild(p)}
+    el.appendChild(d);return r;
+  };
+  const again=()=>{styChanged(g);drawStyle(el,g)};
+  const pv=document.createElement('div');pv.className='prv';
+  c.prev().forEach(h=>{const s=document.createElement('span');s.innerHTML=h;pv.appendChild(s)});
+  sec('Preview').appendChild(pv);
+  drawPal(sec(c.palT,c.palH),c.pal(),id=>{c.setPal(id);again()},c.pals);
+  drawPc(sec('Pawn colors',c.pcn(c.pc())),c.pc(),id=>{c.setPc(id);again()},c.pcs);
+  drawPairSh(sec('Pawn shape','Only changes how the pawns look. Both sides use the same shape.'),c.shapes,c.sh(),id=>{c.setSh(id);again()},c.unit);
+}
+let styG='kij';
+function openStyle(g){
+  styG=g;drawStyle($('stybody'),g);$('styrnd').checked=!!STY[g].rnd();
+  $('sty').classList.remove('hide');$('stydone').focus();
+}
+const closeStyle=()=>$('sty').classList.add('hide');
+$('kstyle').onclick=()=>openStyle('kij');
+$('estyle').onclick=()=>openStyle('elder');
+$('cstyle').onclick=()=>openStyle('cotw');
+$('stydone').onclick=closeStyle;
+$('styrnd').onchange=()=>STY[styG].setRnd($('styrnd').checked);
+$('styshuf').onclick=()=>{STY[styG].shuffle();styChanged(styG);drawStyle($('stybody'),styG)};
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('sty').classList.contains('hide'))closeStyle()});
+// Style (host only) and Invite (online rooms) buttons under each board
+function ctl(p){
+  const host=role=='both'||role=='Y';
+  $(p+'style').classList.toggle('hide',!host);
+  $(p+'inv').classList.toggle('hide',!inRoom);
+}
+document.querySelectorAll('.inv').forEach(b=>b.onclick=()=>{
+  const url=location.origin+location.pathname+'?r='+code+'&g='+curGame;
+  const ok=()=>{b.textContent='Copied!';setTimeout(()=>{b.textContent='Invite'},1600)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(ok,()=>prompt('Copy this invite link:',url));
+  else prompt('Copy this invite link:',url);
+});
+
 refreshHubIcons();
 applyDos('');
+
+// invite links: ?r=code&g=kij|elder|cotw joins that room straight away
+(()=>{
+  const q=new URLSearchParams(location.search),r=(q.get('r')||'').toLowerCase().replace(/[^a-z0-9]/g,''),g=q.get('g');
+  if(r.length<3)return;
+  history.replaceState(null,'',location.pathname);
+  if(g=='elder'){curGame='elder';edOpenLobby();view('elobby');$('ecode').value=r;edEnter(r,false)}
+  else if(g=='cotw'){curGame='cotw';cwOpenLobby();view('clobby');$('ccode').value=r;cwEnter(r,false)}
+  else{curGame='kij';edUntheme();view('lobby');$('code').value=r;enter(r,false)}
+})();
 
 </script>
 </body>
