@@ -1,5 +1,5 @@
 // Kurote server: serves index.html and relays game state between the two players of a room.
-const http = require('http'), fs = require('fs'), path = require('path');
+const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 
 const PORT = process.env.PORT || 3000;
@@ -11,7 +11,109 @@ const FILES = {
   '/take.ogg': ['take.ogg', 'audio/ogg'],
   '/win.ogg': ['win.ogg', 'audio/ogg']
 };
+
+// ---------------------------------------------------------------------------
+// Accounts: name + password, saved look and win/loss records per game.
+// Stored in DATA_DIR/users.json (set DATA_DIR to a persistent disk on your host).
+// ---------------------------------------------------------------------------
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const DB_FILE = path.join(DATA_DIR, 'users.json');
+let db = { secret: crypto.randomBytes(32).toString('hex'), users: {} };
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); } catch {}
+let saveT = null;
+const saveDb = () => {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    const tmp = DB_FILE + '.tmp';
+    fs.writeFile(tmp, JSON.stringify(db), err => { if (!err) fs.rename(tmp, DB_FILE, () => {}); });
+  }, 300);
+};
+saveDb(); // makes sure the signing secret survives a restart
+const GAMES = ['kij', 'elder', 'cotw'];
+const TOKEN_MS = 30 * 24 * 3600 * 1000;
+const scrypt = (pw, salt) => new Promise((ok, no) => crypto.scrypt(pw, salt, 32, (e, k) => e ? no(e) : ok(k)));
+const sign = t => crypto.createHmac('sha256', db.secret).update(t).digest('base64url');
+const mkToken = name => { const t = name + '.' + (Date.now() + TOKEN_MS); return t + '.' + sign(t); };
+const userFrom = req => {
+  const h = req.headers.authorization || '', m = /^Bearer (\S+)$/.exec(h); if (!m) return null;
+  const parts = m[1].split('.'); if (parts.length !== 3) return null;
+  const t = parts[0] + '.' + parts[1], a = Buffer.from(sign(t)), b = Buffer.from(parts[2]);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b) || Number(parts[1]) < Date.now()) return null;
+  return db.users[parts[0]] || null;
+};
+const emptyStats = () => Object.fromEntries(GAMES.map(g => [g, { w: 0, l: 0, d: 0, streak: 0, best: 0 }]));
+const pub = u => ({ name: u.display, settings: u.settings || {}, stats: u.stats });
+const cleanSettings = s => {
+  const o = {}; if (!s || typeof s !== 'object') return o;
+  for (const k of ['pal', 'pc', 'sh', 'epal', 'epc', 'esh', 'cpal', 'cpc', 'csh']) if (typeof s[k] === 'string' && /^[a-z]{1,12}$/.test(s[k])) o[k] = s[k];
+  if (['auto', 'light', 'dark'].includes(s.mode)) o.mode = s.mode;
+  if (typeof s.dos === 'boolean') o.dos = s.dos;
+  return o;
+};
+const tries = new Map(); // ip -> [count, windowStart]
+const tooMany = ip => {
+  const now = Date.now(), t = tries.get(ip);
+  if (!t || now - t[1] > 60000) { tries.set(ip, [1, now]); return false; }
+  return ++t[0] > 10;
+};
+setInterval(() => { const now = Date.now(); for (const [k, v] of tries) if (now - v[1] > 60000) tries.delete(k); }, 60000);
+const lastRes = new Map(); // name -> timestamp of last recorded result
+const json = (res, code, o) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(o)); };
+const readBody = (req, cb) => {
+  let n = 0; const ch = [];
+  req.on('data', c => { n += c.length; if (n > 4096) req.destroy(); else ch.push(c); });
+  req.on('end', () => { try { cb(JSON.parse(Buffer.concat(ch).toString() || '{}')); } catch { cb(null); } });
+};
+const DUMMY = crypto.randomBytes(16);
+async function api(req, res) {
+  const url = req.url.split('?')[0], ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (req.method === 'GET' && url === '/api/me') {
+    const u = userFrom(req); return u ? json(res, 200, { user: pub(u) }) : json(res, 401, { err: 'Signed out.' });
+  }
+  if (req.method !== 'POST') return json(res, 405, { err: 'Method not allowed.' });
+  readBody(req, async b => {
+    if (!b || typeof b !== 'object') return json(res, 400, { err: 'Bad request.' });
+    try {
+      if (url === '/api/register' || url === '/api/login') {
+        if (tooMany(ip)) return json(res, 429, { err: 'Too many attempts. Wait a minute and try again.' });
+        const raw = String(b.name || '').trim(), name = raw.toLowerCase(), pw = String(b.pass || '');
+        if (url === '/api/register') {
+          if (!/^[a-z0-9_]{3,16}$/.test(name)) return json(res, 400, { err: 'Name: 3 to 16 letters, digits or underscores.' });
+          if (pw.length < 6 || pw.length > 64) return json(res, 400, { err: 'Password: 6 to 64 characters.' });
+          if (db.users[name]) return json(res, 409, { err: 'That name is taken.' });
+          if (Object.keys(db.users).length >= 5000) return json(res, 503, { err: 'No new accounts right now.' });
+          const salt = crypto.randomBytes(16), hash = await scrypt(pw, salt);
+          if (db.users[name]) return json(res, 409, { err: 'That name is taken.' });
+          db.users[name] = { display: raw, salt: salt.toString('hex'), hash: hash.toString('hex'), created: Date.now(), settings: cleanSettings(b.settings), stats: emptyStats() };
+          saveDb(); return json(res, 200, { token: mkToken(name), user: pub(db.users[name]) });
+        }
+        const u = db.users[name], salt = u ? Buffer.from(u.salt, 'hex') : DUMMY, hash = await scrypt(pw, salt);
+        if (!u || !crypto.timingSafeEqual(hash, Buffer.from(u.hash, 'hex'))) return json(res, 401, { err: 'Wrong name or password.' });
+        return json(res, 200, { token: mkToken(name), user: pub(u) });
+      }
+      const u = userFrom(req); if (!u) return json(res, 401, { err: 'Signed out.' });
+      const key = u.display.toLowerCase();
+      if (url === '/api/save') { u.settings = cleanSettings(b.settings); saveDb(); return json(res, 200, { ok: true }); }
+      if (url === '/api/result') {
+        const g = b.game, r = b.result;
+        if (!GAMES.includes(g) || !['win', 'loss', 'draw'].includes(r)) return json(res, 400, { err: 'Bad result.' });
+        const now = Date.now(); if (now - (lastRes.get(key) || 0) < 3000) return json(res, 429, { err: 'Too fast.' });
+        lastRes.set(key, now);
+        const st = u.stats[g] || (u.stats[g] = { w: 0, l: 0, d: 0, streak: 0, best: 0 });
+        if (r === 'win') { st.w++; st.streak++; st.best = Math.max(st.best, st.streak); } else if (r === 'loss') { st.l++; st.streak = 0; } else st.d++;
+        saveDb(); return json(res, 200, { stats: u.stats });
+      }
+      if (url === '/api/delete') {
+        const hash = await scrypt(String(b.pass || ''), Buffer.from(u.salt, 'hex'));
+        if (!crypto.timingSafeEqual(hash, Buffer.from(u.hash, 'hex'))) return json(res, 401, { err: 'Wrong password.' });
+        delete db.users[key]; saveDb(); return json(res, 200, { ok: true });
+      }
+      json(res, 404, { err: 'Not found.' });
+    } catch { json(res, 500, { err: 'Server error.' }); }
+  });
+}
 const srv = http.createServer((req, res) => {
+  if (req.url.startsWith('/api/')) return api(req, res);
   const f = FILES[req.url.split('?')[0]] || ['index.html', 'text/html; charset=utf-8'];
   fs.readFile(path.join(__dirname, f[0]), (err, data) => {
     if (err) { res.writeHead(404); return res.end('Not found'); }
