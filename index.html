@@ -335,6 +335,10 @@ body.ed #eboard .c { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
 .prv span:nth-child(even) { background: var(--d); }
 .prv svg { width: 74%; height: 74%; }
 
+#toast { position: fixed; left: 50%; bottom: 22px; z-index: 40; max-width: min(92vw, 460px); padding: 12px 18px; text-align: center; font-size: .95rem; color: #fff; background: var(--d); border: 2px solid var(--y); border-radius: var(--radius-sm); box-shadow: 0 6px 20px rgba(0,0,0,.35); opacity: 0; transform: translate(-50%, 16px); pointer-events: none; transition: opacity .25s, transform .25s; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+body.dos #toast { background: #0000aa; border: 2px solid #fff; box-shadow: 4px 4px 0 #555; transition: none; }
+
 /* ---- secret: one hidden tile per game background switches that game to DOS graphics ---- */
 .wrap { pointer-events: none; }
 .wrap > * { pointer-events: auto; }
@@ -582,6 +586,7 @@ body.dos::after {
 
 <div id="spec" class="hide" role="status"></div>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="sty" class="ov hide" role="dialog" aria-modal="true" aria-label="Room style">
   <div class="wc stc">
     <h2>Room style</h2>
@@ -613,7 +618,7 @@ body.dos::after {
 <script>
 const N=5,RES=2,COL={Y:'var(--y)',G:'var(--g)'},NAME={Y:'Yellow',G:'Green'};
 let B,X,R,C,turn,sel,placing,over,note,seq=0,dismissed=false;
-let ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
+let isHost=false,ws=null,code='',inRoom=false,creating=false,role='both',peers={Y:false,G:false,S:0},live=false;
 let curPal='classic',pick='classic',anim=null,rnd=false,botLevel=null,botTimer=0;
 const $=id=>document.getElementById(id);
 const SFX={};
@@ -1349,7 +1354,7 @@ function render(){
     for(let k=0;k<RES;k++){const s=document.createElement('i'),alt=!!REFILLS[curSh];s.className='ball'+(alt?' tk':'')+(k<R[p]?'':' used');s.style.setProperty('--bc',COL[p]);if(alt)s.innerHTML=refillSVG(COL[p],curSh);r.appendChild(s)}
   });
   const pb=$('place');pb.disabled=!(canAct()&&places(turn).length);pb.textContent=placing?'Cancel placing':'Place a wizard';
-  const host=role=='both'||role=='Y';
+  const host=role=='both'||isHost;
   $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;ctl('k');
   if(!over)dismissed=false;
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
@@ -1370,7 +1375,7 @@ function render(){
   }
   $('msg').textContent=m;
   if(inRoom){
-    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
+    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('stat').textContent=botLevel?'Local game vs bot ('+botLevel+')':'Local game on this device';
@@ -1394,7 +1399,7 @@ function connect(){
     if(s!==ws)return;
     let m;try{m=JSON.parse(e.data)}catch(x){return}
     if(m.t=='hello'){
-      creating=false;role=m.role;peers=m.peers;live=true;
+      creating=false;role=m.role;peers=m.peers;live=true;isHost=!!m.host;
       if(curGame=='elder'){edHello(m);return}
       if(curGame=='cotw'){cwHello(m);return}
       // the hello state is the room's truth, so it always replaces whatever was on screen
@@ -1404,6 +1409,11 @@ function connect(){
     }else if(m.t=='state')({elder:edApply,cotw:cwApply}[curGame]||apply)(m.state,m.force);
     else if(m.t=='peers'){peers=m.peers;({elder:edRender,cotw:cwRender}[curGame]||render)()}
     else if(m.t=='style')applyStyle(m.style);
+    else if(m.t=='host'){
+      isHost=!!m.you;
+      toast(m.you?'The host left. You are the host now: Style and New game are yours.':'The host left. A new host has taken over.');
+      closeStyleIf();({elder:edRender,cotw:cwRender}[curGame]||render)();
+    }
     else if(m.t=='err')fail(String(m.msg||'Something went wrong.'));
   };
   s.onclose=()=>{
@@ -1778,7 +1788,7 @@ function edRender(){
     const d=$('ep'+p);d.className='pl'+(ED.turn==p&&!ED.over?' on':'');d.style.borderColor=ED.turn==p&&!ED.over?COL[p]:'';
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
   });
-  const host=role=='both'||role=='Y';
+  const host=role=='both'||isHost;
   $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;ctl('e');
   if(!ED.over)edDismissed=false;
   const sw=ED.over&&!edDismissed;$('ewin').classList.toggle('hide',!sw);
@@ -1799,7 +1809,7 @@ function edRender(){
   }
   $('emsg').textContent=m;
   if(inRoom){
-    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
+    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('estat').textContent=edBot?'Local game vs bot ('+edBot+')':'Local game on this device';
@@ -2212,7 +2222,7 @@ function cwRender(){
     d.className='pl'+(CW.turn==p&&!CW.over?' on':'');d.style.borderColor=CW.turn==p&&!CW.over?COL[p]:'';
     d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
   });
-  const host=role=='both'||role=='Y';
+  const host=role=='both'||isHost;
   $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;ctl('c');
   $('cdone').classList.toggle('hide',!(cwCan()&&CW.ph=='c'));
   if(!CW.over)cwDismissed=false;
@@ -2238,7 +2248,7 @@ function cwRender(){
   }
   $('cmsg').textContent=m;
   if(inRoom){
-    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='Y'?' (host)':'');
+    const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
     $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('cstat').textContent=cwBot?'Local game vs bot ('+cwBot+')':'Local game on this device';
@@ -2392,6 +2402,12 @@ function openStyle(g){
   $('sty').classList.remove('hide');$('stydone').focus();
 }
 const closeStyle=()=>$('sty').classList.add('hide');
+const closeStyleIf=()=>{if(!isHost)closeStyle()};
+let toastT=0;
+function toast(t){
+  const e=$('toast');e.textContent=t;e.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),6000);
+}
 $('kstyle').onclick=()=>openStyle('kij');
 $('estyle').onclick=()=>openStyle('elder');
 $('cstyle').onclick=()=>openStyle('cotw');
@@ -2401,7 +2417,7 @@ $('styshuf').onclick=()=>{STY[styG].shuffle();styChanged(styG);drawStyle($('styb
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('sty').classList.contains('hide'))closeStyle()});
 // Style (host only) and Invite (online rooms) buttons under each board
 function ctl(p){
-  const host=role=='both'||role=='Y';
+  const host=role=='both'||isHost;
   $(p+'style').classList.toggle('hide',!host);
   $(p+'inv').classList.toggle('hide',!inRoom);
 }
