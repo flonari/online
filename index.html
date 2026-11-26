@@ -478,7 +478,7 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-lv="easy">Easy <small>700</small></button><button class="a" data-lv="normal">Normal <small>1100</small></button><button class="a" data-lv="hard">Hard <small>1500</small></button></div>
+  <div class="row"><button class="a" data-lv="easy">Easy <small>70</small></button><button class="a" data-lv="normal">Normal <small>110</small></button><button class="a" data-lv="hard">Hard <small>150</small></button></div>
   <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="lerr" role="status"></p>
 </section>
@@ -526,7 +526,7 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-elv="easy">Easy <small>700</small></button><button class="a" data-elv="normal">Normal <small>1100</small></button><button class="a" data-elv="hard">Hard <small>1500</small></button></div>
+  <div class="row"><button class="a" data-elv="easy">Easy <small>70</small></button><button class="a" data-elv="normal">Normal <small>110</small></button><button class="a" data-elv="hard">Hard <small>150</small></button></div>
   <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="elerr" role="status"></p>
 </section>
@@ -570,7 +570,7 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="clocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-cv="easy">Easy <small>700</small></button><button class="a" data-cv="normal">Normal <small>1100</small></button><button class="a" data-cv="hard">Hard <small>1500</small></button></div>
+  <div class="row"><button class="a" data-cv="easy">Easy <small>70</small></button><button class="a" data-cv="normal">Normal <small>110</small></button><button class="a" data-cv="hard">Hard <small>150</small></button></div>
   <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="cerr" role="status"></p>
 </section>
@@ -2532,7 +2532,7 @@ function acctUI(){
   const tb=document.querySelector('#astats tbody');
   if(tb){tb.innerHTML='';Object.keys(GNAME).forEach(g=>{
     const t=(acct&&acct.stats&&acct.stats[g])||{w:0,l:0,d:0,streak:0,best:0},tr=document.createElement('tr');
-    const el=(acct&&acct.elo&&acct.elo[g])||{r:1000,peak:1000};
+    const el=(acct&&acct.elo&&acct.elo[g])||{r:100,peak:100};
     [GNAME[g],el.r+(el.peak>el.r?' ('+el.peak+')':''),t.w,t.l,t.d,t.streak].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
     tb.appendChild(tr);
   })}
