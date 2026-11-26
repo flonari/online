@@ -350,7 +350,7 @@ body.dos #toast { background: #0000aa; border: 2px solid #fff; box-shadow: 4px 4
 .afm label { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: .85rem; color: var(--mut); }
 .afm input { width: 100%; text-align: left; letter-spacing: 0; color: var(--fg); }
 :is(#aerr, #adelerr) { margin: 0; min-height: 1.3em; font-size: .88rem; color: #d8514a; }
-#astats { width: 100%; border-collapse: collapse; font-size: .9rem; }
+#astats { width: 100%; margin-bottom: 4px; border-collapse: collapse; font-size: .9rem; }
 #astats th { font-size: .75rem; font-weight: normal; color: var(--mut); padding: 2px 4px; }
 #astats td { padding: 6px 4px; border-top: 1px solid var(--line); }
 #astats td:first-child { text-align: left; font-weight: bold; }
@@ -358,6 +358,14 @@ body.dos #toast { background: #0000aa; border: 2px solid #fff; box-shadow: 4px 4
 .adel summary { cursor: pointer; }
 .adel .row { margin-top: 8px; }
 .adel input { width: 100%; text-align: left; letter-spacing: 0; }
+.welo { margin: 0; font-size: .95rem; color: var(--mut); }
+.welo:empty { display: none; }
+.welo b { font-size: 1.15rem; }
+.welo .up { color: #3f9b4a; } .welo .dn { color: #d8514a; }
+small { font-size: .7em; opacity: .7; }
+.pl .rt { font-weight: normal; font-size: .8em; color: var(--mut); }
+body.dos .welo .up { color: #55ff55; } body.dos .welo .dn { color: #ff5555; }
+#astats td:nth-child(2) { font-weight: bold; }
 body.dos .acw { border: 4px double #fff; }
 body.dos #astats td { border-top: 1px solid #555; }
 
@@ -470,8 +478,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-lv="easy">Easy</button><button class="a" data-lv="normal">Normal</button><button class="a" data-lv="hard">Hard</button></div>
-  <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first.</p>
+  <div class="row"><button class="a" data-lv="easy">Easy <small>700</small></button><button class="a" data-lv="normal">Normal <small>1100</small></button><button class="a" data-lv="hard">Hard <small>1500</small></button></div>
+  <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="lerr" role="status"></p>
 </section>
 
@@ -496,7 +504,7 @@ body.dos::after {
       <div id="board"></div>
       <div id="win" class="hide" role="alertdialog" aria-live="polite">
         <div class="wc" id="wc">
-          <h2 id="wt"></h2>
+          <h2 id="wt"></h2><p class="welo" id="welo"></p>
           <div class="row"><button class="a primary" id="wnew">New game</button><button class="a" id="wview">View board</button></div>
         </div>
       </div>
@@ -518,8 +526,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-elv="easy">Easy</button><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
-  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
+  <div class="row"><button class="a" data-elv="easy">Easy <small>700</small></button><button class="a" data-elv="normal">Normal <small>1100</small></button><button class="a" data-elv="hard">Hard <small>1500</small></button></div>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="elerr" role="status"></p>
 </section>
 
@@ -542,7 +550,7 @@ body.dos::after {
     <div id="eboard"></div>
     <div id="ewin" class="hide" role="alertdialog" aria-live="polite">
       <div class="wc">
-        <h2 id="ewt"></h2>
+        <h2 id="ewt"></h2><p class="welo" id="ewelo"></p>
         <div class="row"><button class="a primary" id="ewnew">New game</button><button class="a" id="ewview">View board</button></div>
       </div>
     </div>
@@ -562,8 +570,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="clocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-cv="easy">Easy</button><button class="a" data-cv="normal">Normal</button><button class="a" data-cv="hard">Hard</button></div>
-  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
+  <div class="row"><button class="a" data-cv="easy">Easy <small>700</small></button><button class="a" data-cv="normal">Normal <small>1100</small></button><button class="a" data-cv="hard">Hard <small>1500</small></button></div>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
   <p id="cerr" role="status"></p>
 </section>
 
@@ -586,7 +594,7 @@ body.dos::after {
     <div id="cboard"></div>
     <div id="cwin" class="hide" role="alertdialog" aria-live="polite">
       <div class="wc">
-        <h2 id="cwt"></h2>
+        <h2 id="cwt"></h2><p class="welo" id="cwelo"></p>
         <div class="row"><button class="a primary" id="cwnew">New game</button><button class="a" id="cwview">View board</button></div>
       </div>
     </div>
@@ -626,7 +634,7 @@ body.dos::after {
     <div id="ain" class="hide">
       <h2 id="aname2"></h2>
       <p class="hint">Your look and records follow you to any device.</p>
-      <table id="astats"><thead><tr><th></th><th>Won</th><th>Lost</th><th>Drawn</th><th>Streak</th></tr></thead><tbody></tbody></table>
+      <table id="astats"><thead><tr><th></th><th>Elo (peak)</th><th>Won</th><th>Lost</th><th>Drawn</th><th>Streak</th></tr></thead><tbody></tbody></table>
       <div class="row"><button class="a" id="aout2" type="button">Sign out</button><button class="a primary" id="adone" type="button">Done</button></div>
       <details class="adel"><summary>Delete account</summary>
         <div class="row"><input id="adelpw" type="password" autocomplete="current-password" placeholder="password" aria-label="Password to delete the account"><button class="a" id="adelgo" type="button">Delete</button></div>
@@ -1394,7 +1402,7 @@ function render(){
   const a=anim;anim=null;if(a&&!reduce&&cells[a.to])playAnim(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');d.style.borderColor=turn==p&&!over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}${who(p)}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
@@ -1405,7 +1413,7 @@ function render(){
   const host=role=='both'||isHost;
   $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;ctl('k');
   if(!over)dismissed=false;
-  if(over)recordEnd('kij',winner(),seq,!!botLevel);else recordReset('kij');
+  if(over)recordEnd('kij',winner(),seq,botLevel);else recordReset('kij',seq);
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
   if(showWin){
     const w=winner();
@@ -1426,7 +1434,7 @@ function render(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
+    $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
   }else $('stat').textContent=botLevel?'Local game vs bot ('+botLevel+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -1443,7 +1451,7 @@ function fail(msg){
 }
 function connect(){
   const s=ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
-  s.onopen=()=>{if(s===ws)send({t:creating?'create':'join',code,game:curGame})};
+  s.onopen=()=>{if(s===ws)send({t:creating?'create':'join',code,game:curGame,token})};
   s.onmessage=e=>{
     if(s!==ws)return;
     let m;try{m=JSON.parse(e.data)}catch(x){return}
@@ -1458,6 +1466,7 @@ function connect(){
     }else if(m.t=='state')({elder:edApply,cotw:cwApply}[curGame]||apply)(m.state,m.force);
     else if(m.t=='peers'){peers=m.peers;({elder:edRender,cotw:cwRender}[curGame]||render)()}
     else if(m.t=='style')applyStyle(m.style);
+    else if(m.t=='elo')gotElo(m);
     else if(m.t=='host'){
       isHost=!!m.you;
       toast(m.you?'The host left. You are the host now: Style and New game are yours.':'The host left. A new host has taken over.');
@@ -1835,12 +1844,12 @@ function edRender(){
   const a=edAnim;edAnim=null;if(a&&a.length&&!reduce)edPlay(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('ep'+p);d.className='pl'+(ED.turn==p&&!ED.over?' on':'');d.style.borderColor=ED.turn==p&&!ED.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}${who(p)}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
   });
   const host=role=='both'||isHost;
   $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;ctl('e');
   if(!ED.over)edDismissed=false;
-  if(ED.over)recordEnd('elder',ED.win,ED.seq,!!edBot);else recordReset('elder');
+  if(ED.over)recordEnd('elder',ED.win,ED.seq,edBot);else recordReset('elder',ED.seq);
   const sw=ED.over&&!edDismissed;$('ewin').classList.toggle('hide',!sw);
   if(sw){
     $('ewt').innerHTML=ED.win?`<i class="dot" style="background:${COL[ED.win]}"></i>${me(ED.win)?'You win!':edBot?'The bot wins!':NAME[ED.win]+' wins!'}`:"It's a draw!";
@@ -1861,7 +1870,7 @@ function edRender(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
+    $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
   }else $('estat').textContent=edBot?'Local game vs bot ('+edBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -2270,13 +2279,13 @@ function cwRender(){
   ['Y','G'].forEach(p=>{
     const d=$('cp'+p),n=CW.B.filter((x,i)=>x===p&&CW.K[i]==1).length,st=CW.B.filter((x,i)=>x===p&&CW.K[i]==1&&CW.S[i]).length;
     d.className='pl'+(CW.turn==p&&!CW.over?' on':'');d.style.borderColor=CW.turn==p&&!CW.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}${who(p)}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
   });
   const host=role=='both'||isHost;
   $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;ctl('c');
   $('cdone').classList.toggle('hide',!(cwCan()&&CW.ph=='c'));
   if(!CW.over)cwDismissed=false;
-  if(CW.over)recordEnd('cotw',CW.win,CW.seq,!!cwBot);else recordReset('cotw');
+  if(CW.over)recordEnd('cotw',CW.win,CW.seq,cwBot);else recordReset('cotw',CW.seq);
   const sw=CW.over&&!cwDismissed;$('cwin').classList.toggle('hide',!sw);
   if(sw){
     $('cwt').innerHTML=CW.win?`<i class="dot" style="background:${COL[CW.win]}"></i>${me(CW.win)?'You win!':cwBot?'The bot wins!':NAME[CW.win]+' wins!'}`:"It's a draw!";
@@ -2301,7 +2310,7 @@ function cwRender(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
+    $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
   }else $('cstat').textContent=cwBot?'Local game vs bot ('+cwBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -2517,12 +2526,14 @@ function acctUI(){
   $('hubsub').textContent=acct?'Welcome back, '+acct.name:'Pick a game';
   Object.keys(GNAME).forEach(g=>{
     const e=$('rec-'+g),t=acct&&acct.stats&&acct.stats[g];
-    e.innerHTML=t&&(t.w+t.l+t.d)?`<b>${t.w}</b> won · <b>${t.l}</b> lost`+(t.d?` · <b>${t.d}</b> drawn`:'')+(t.streak>1?` · streak <b>${t.streak}</b>`:''):'';
+    const el=acct&&acct.elo&&acct.elo[g];
+    e.innerHTML=acct&&el?`Elo <b>${el.r}</b>`+(t&&(t.w+t.l+t.d)?` · <b>${t.w}</b> won · <b>${t.l}</b> lost`+(t.d?` · <b>${t.d}</b> drawn`:'')+(t.streak>1?` · streak <b>${t.streak}</b>`:''):' · unplayed'):'';
   });
   const tb=document.querySelector('#astats tbody');
   if(tb){tb.innerHTML='';Object.keys(GNAME).forEach(g=>{
     const t=(acct&&acct.stats&&acct.stats[g])||{w:0,l:0,d:0,streak:0,best:0},tr=document.createElement('tr');
-    [GNAME[g],t.w,t.l,t.d,t.streak+(t.best?' (best '+t.best+')':'')].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
+    const el=(acct&&acct.elo&&acct.elo[g])||{r:1000,peak:1000};
+    [GNAME[g],el.r+(el.peak>el.r?' ('+el.peak+')':''),t.w,t.l,t.d,t.streak].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
     tb.appendChild(tr);
   })}
 }
@@ -2537,17 +2548,39 @@ function signOut(){
   token='';acct=null;try{localStorage.removeItem('kj-token')}catch(e){}
   acctUI();
 }
-// report a finished game once (online rooms and bot games only; spectators and local two-player are skipped)
-const recorded={};
-function recordReset(game){recorded[game]=null;try{sessionStorage.removeItem('kj-rec-'+game)}catch(e){}}
+// Online ranked results are decided by the server (it sends an "elo" message to both players).
+// Bot games are reported here. Local two-player games and spectating are never rated.
+const recorded={},lastElo={},firstSeq={},endMoves={};
+// moves in a game = move counter now minus the counter when this game began (the counter keeps running across New game)
+function recordReset(game,sq){recorded[game]=null;lastElo[game]=null;endMoves[game]=null;showElo(game);if(firstSeq[game]==null)firstSeq[game]=sq}
 function recordEnd(game,w,sq,bot){
-  if(!acct||role=='S'||(role=='both'&&!bot))return;
-  const key=game+'|'+(inRoom?code:'bot')+'|'+sq+'|'+(w||'-');
+  showElo(game);
+  if(endMoves[game]==null){endMoves[game]=Math.max(0,sq-(firstSeq[game]||0));firstSeq[game]=null}
+  if(!acct||inRoom||role=='S'||!bot)return;
+  const key=game+'|bot|'+sq+'|'+(w||'-');
   if(recorded[game]===key)return;recorded[game]=key;
-  try{if(sessionStorage.getItem('kj-rec-'+game)===key)return;sessionStorage.setItem('kj-rec-'+game,key)}catch(e){}
-  const mine=bot?'Y':role,result=w?(w==mine?'win':'loss'):'draw';
-  apiCall('/api/result',{game,result}).then(r=>{acct.stats=r.stats;acctUI()}).catch(()=>{});
+  const result=w?(w=='Y'?'win':'loss'):'draw';
+  apiCall('/api/result',{game,result,level:bot,moves:endMoves[game]}).then(r=>gotElo(r)).catch(()=>{});
 }
+function gotElo(m){
+  if(!acct)return;
+  if(m.stats)acct.stats=m.stats;if(m.elo)acct.elo=m.elo;
+  lastElo[m.game]=m;acctUI();showElo(m.game);
+  toast('Elo '+(m.delta>=0?'+':'')+m.delta+' → '+m.rating+' vs '+m.opp.name+' ('+m.opp.rating+')');
+}
+const ELOEL={kij:'welo',elder:'ewelo',cotw:'cwelo'};
+function showElo(game){
+  const e=$(ELOEL[game]),m=lastElo[game];if(!e)return;
+  if(!m){e.innerHTML='';return}
+  const long=m.mult>=1.5?' · long match bonus':m.mult<=.5?' · short match':'';
+  e.innerHTML=`Elo <b class="${m.delta>=0?'up':'dn'}">${m.delta>=0?'+':''}${m.delta}</b> → ${m.rating} <span>(vs ${m.opp.name.replace(/[<>&]/g,'')} ${m.opp.rating}${long})</span>`;
+}
+// name + Elo of the account in a seat, shown on the player cards in ranked rooms
+const who=p=>{
+  const n=inRoom&&peers.names&&peers.names[p];
+  return n?` <span class="rt">${n.replace(/[<>&]/g,'')} · ${peers.elo[p]}</span>`:'';
+};
+const rankTag=()=>inRoom&&role!='S'&&peers.Y&&peers.G?(peers.ranked?' · ranked':' · unranked (both players need an account)'):'';
 function openAcct(){
   $('aout').classList.toggle('hide',!!acct);$('ain').classList.toggle('hide',!acct);
   if(acct){$('aname2').textContent=acct.name;acctUI()}
