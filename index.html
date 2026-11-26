@@ -339,36 +339,6 @@ body.ed #eboard .c { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
 #toast.on { opacity: 1; transform: translate(-50%, 0); }
 body.dos #toast { background: #0000aa; border: 2px solid #fff; box-shadow: 4px 4px 0 #555; transition: none; }
 
-/* ---- accounts ---- */
-.hubbar { display: flex; gap: 8px; justify-content: center; }
-.acb[aria-pressed=true], .acb.in { background: var(--fg); color: var(--bg); }
-.gr { margin-top: 3px; font-size: .75rem; line-height: 1.3; color: var(--mut); }
-.gr:empty { display: none; }
-.gr b { color: var(--fg); font-weight: bold; }
-.acw { width: min(94vw, 400px); max-height: 92vh; overflow-y: auto; }
-.afm { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
-.afm label { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: .85rem; color: var(--mut); }
-.afm input { width: 100%; text-align: left; letter-spacing: 0; color: var(--fg); }
-:is(#aerr, #adelerr) { margin: 0; min-height: 1.3em; font-size: .88rem; color: #d8514a; }
-#astats { width: 100%; margin-bottom: 4px; border-collapse: collapse; font-size: .9rem; }
-#astats th { font-size: .75rem; font-weight: normal; color: var(--mut); padding: 2px 4px; }
-#astats td { padding: 6px 4px; border-top: 1px solid var(--line); }
-#astats td:first-child { text-align: left; font-weight: bold; }
-.adel { text-align: left; font-size: .85rem; color: var(--mut); }
-.adel summary { cursor: pointer; }
-.adel .row { margin-top: 8px; }
-.adel input { width: 100%; text-align: left; letter-spacing: 0; }
-.welo { margin: 0; font-size: .95rem; color: var(--mut); }
-.welo:empty { display: none; }
-.welo b { font-size: 1.15rem; }
-.welo .up { color: #3f9b4a; } .welo .dn { color: #d8514a; }
-small { font-size: .7em; opacity: .7; }
-.pl .rt { font-weight: normal; font-size: .8em; color: var(--mut); }
-body.dos .welo .up { color: #55ff55; } body.dos .welo .dn { color: #ff5555; }
-#astats td:nth-child(2) { font-weight: bold; }
-body.dos .acw { border: 4px double #fff; }
-body.dos #astats td { border-top: 1px solid #555; }
-
 /* ---- secret: one hidden tile per game background switches that game to DOS graphics ---- */
 .wrap { pointer-events: none; }
 .wrap > * { pointer-events: auto; }
@@ -440,26 +410,26 @@ body.dos::after {
 <main class="wrap">
 <section id="hub">
   <h1 id="hubtitle" aria-label="flow.state">flow.state</h1>
-  <p class="sub" id="hubsub">Pick a game</p>
+  <p class="sub">Pick a game</p>
   <ul class="games">
     <li><button class="gc" id="kij" type="button">
       <span class="gi" aria-hidden="true" id="kicon"></span>
-      <span class="gx"><span class="gt">Kijutsu</span><span class="gd">A two-player wizard board game.</span><span class="gm"><span>Online</span><span>Local</span><span>Bot</span></span><span class="gr" id="rec-kij"></span></span>
+      <span class="gx"><span class="gt">Kijutsu</span><span class="gd">A two-player wizard board game.</span><span class="gm"><span>Online</span><span>Local</span><span>Bot</span></span></span>
     </button></li>
     <li><button class="gc" id="eld" type="button">
       <span class="gi" aria-hidden="true" id="eicon"></span>
-      <span class="gx"><span class="gt">Elder Dance</span><span class="gd">Guide your Wise Elder across the board.</span><span class="gm"><span>Online</span><span>Local</span></span><span class="gr" id="rec-elder"></span></span>
+      <span class="gx"><span class="gt">Elder Dance</span><span class="gd">Guide your Wise Elder across the board.</span><span class="gm"><span>Online</span><span>Local</span></span></span>
     </button></li>
     <li><button class="gc" id="cow" type="button">
       <span class="gi" aria-hidden="true" id="cicon"></span>
-      <span class="gx"><span class="gt">Thronder</span><span class="gd">Throw your Stone Cylinder across the board.</span><span class="gm"><span>Online</span><span>Local</span><span>Bot</span></span><span class="gr" id="rec-cotw"></span></span>
+      <span class="gx"><span class="gt">Thronder</span><span class="gd">Throw your Stone Cylinder across the board.</span><span class="gm"><span>Online</span><span>Local</span><span>Bot</span></span></span>
     </button></li>
     <li><button class="gc dis" id="more" type="button">
       <span class="gi" aria-hidden="true">?</span>
       <span class="gx"><span class="gt">More games</span><span class="gd">Coming soon</span></span>
     </button></li>
   </ul>
-  <div class="hubbar"><button class="a mode" id="hubmode" type="button">Theme</button><button class="a mode acb" id="hubacct" type="button">Sign in</button></div>
+  <button class="a mode" id="hubmode" type="button">Theme</button>
 </section>
 
 <header id="hdr" class="hide">
@@ -478,8 +448,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="local">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-lv="easy">Easy <small>70</small></button><button class="a" data-lv="normal">Normal <small>110</small></button><button class="a" data-lv="hard">Hard <small>150</small></button></div>
-  <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
+  <div class="row"><button class="a" data-lv="easy">Easy</button><button class="a" data-lv="normal">Normal</button><button class="a" data-lv="hard">Hard</button></div>
+  <p class="hint">Bot games randomise the palette and pawn colors every game. You play the first color and move first.</p>
   <p id="lerr" role="status"></p>
 </section>
 
@@ -504,7 +474,7 @@ body.dos::after {
       <div id="board"></div>
       <div id="win" class="hide" role="alertdialog" aria-live="polite">
         <div class="wc" id="wc">
-          <h2 id="wt"></h2><p class="welo" id="welo"></p>
+          <h2 id="wt"></h2>
           <div class="row"><button class="a primary" id="wnew">New game</button><button class="a" id="wview">View board</button></div>
         </div>
       </div>
@@ -526,8 +496,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="elocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-elv="easy">Easy <small>70</small></button><button class="a" data-elv="normal">Normal <small>110</small></button><button class="a" data-elv="hard">Hard <small>150</small></button></div>
-  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
+  <div class="row"><button class="a" data-elv="easy">Easy</button><button class="a" data-elv="normal">Normal</button><button class="a" data-elv="hard">Hard</button></div>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
   <p id="elerr" role="status"></p>
 </section>
 
@@ -550,7 +520,7 @@ body.dos::after {
     <div id="eboard"></div>
     <div id="ewin" class="hide" role="alertdialog" aria-live="polite">
       <div class="wc">
-        <h2 id="ewt"></h2><p class="welo" id="ewelo"></p>
+        <h2 id="ewt"></h2>
         <div class="row"><button class="a primary" id="ewnew">New game</button><button class="a" id="ewview">View board</button></div>
       </div>
     </div>
@@ -570,8 +540,8 @@ body.dos::after {
   <h2>Play locally</h2>
   <div class="row"><button class="a" id="clocal">Play on this device</button></div>
   <div class="or">or play against the bot</div>
-  <div class="row"><button class="a" data-cv="easy">Easy <small>70</small></button><button class="a" data-cv="normal">Normal <small>110</small></button><button class="a" data-cv="hard">Hard <small>150</small></button></div>
-  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game. The number is the bot's Elo; beating a higher rating, and playing a longer game, earns more.</p>
+  <div class="row"><button class="a" data-cv="easy">Easy</button><button class="a" data-cv="normal">Normal</button><button class="a" data-cv="hard">Hard</button></div>
+  <p class="hint">Against the bot you play first and the bot plays second. Bot games randomize the board and pawn colors every game.</p>
   <p id="cerr" role="status"></p>
 </section>
 
@@ -594,7 +564,7 @@ body.dos::after {
     <div id="cboard"></div>
     <div id="cwin" class="hide" role="alertdialog" aria-live="polite">
       <div class="wc">
-        <h2 id="cwt"></h2><p class="welo" id="cwelo"></p>
+        <h2 id="cwt"></h2>
         <div class="row"><button class="a primary" id="cwnew">New game</button><button class="a" id="cwview">View board</button></div>
       </div>
     </div>
@@ -617,32 +587,6 @@ body.dos::after {
 <div id="spec" class="hide" role="status"></div>
 
 <div id="toast" role="status" aria-live="polite"></div>
-<div id="acct" class="ov hide" role="dialog" aria-modal="true" aria-label="Account">
-  <div class="wc acw">
-    <div id="aout">
-      <h2>Account</h2>
-      <p class="hint">Save your look and your win records, and take them to any device. Guest play still works.</p>
-      <div class="row seg" id="atabs"><button class="a" type="button" data-t="in" aria-pressed="true">Sign in</button><button class="a" type="button" data-t="up" aria-pressed="false">Create account</button></div>
-      <form id="aform" class="afm" novalidate>
-        <label>Name<input id="aname" autocomplete="username" maxlength="16" spellcheck="false" autocapitalize="off"></label>
-        <label>Password<input id="apass" type="password" autocomplete="current-password" maxlength="64"></label>
-        <p class="hint" id="ahint"></p>
-        <p id="aerr" role="status"></p>
-        <div class="row"><button class="a primary" id="asubmit" type="submit">Sign in</button><button class="a" id="aclose" type="button">Not now</button></div>
-      </form>
-    </div>
-    <div id="ain" class="hide">
-      <h2 id="aname2"></h2>
-      <p class="hint">Your look and records follow you to any device.</p>
-      <table id="astats"><thead><tr><th></th><th>Elo (peak)</th><th>Won</th><th>Lost</th><th>Drawn</th><th>Streak</th></tr></thead><tbody></tbody></table>
-      <div class="row"><button class="a" id="aout2" type="button">Sign out</button><button class="a primary" id="adone" type="button">Done</button></div>
-      <details class="adel"><summary>Delete account</summary>
-        <div class="row"><input id="adelpw" type="password" autocomplete="current-password" placeholder="password" aria-label="Password to delete the account"><button class="a" id="adelgo" type="button">Delete</button></div>
-        <p id="adelerr" role="status"></p>
-      </details>
-    </div>
-  </div>
-</div>
 <div id="sty" class="ov hide" role="dialog" aria-modal="true" aria-label="Room style">
   <div class="wc stc">
     <h2>Room style</h2>
@@ -837,7 +781,7 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isDark=()=>mode=='dark'||(mode=='auto'&&mq.matches);
 const ck=(k,v)=>{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path=/; SameSite=Lax'+(location.protocol=='https:'?'; Secure':'')};
 const rc=k=>{const m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};
-const saveTheme=()=>{acctSave();ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc);ck('kj-epal',themeEPal);ck('kj-cpal',themeCPal);ck('kj-cpawn',themeCPc);ck('kj-eshape',themeESh);ck('kj-cshape',themeCSh)};
+const saveTheme=()=>{ck('kj-theme',themePal+'|'+mode);ck('kj-pawn',themePc);ck('kj-shape',themeSh);ck('kj-epawn',themeEPc);ck('kj-epal',themeEPal);ck('kj-cpal',themeCPal);ck('kj-cpawn',themeCPc);ck('kj-eshape',themeESh);ck('kj-cshape',themeCSh)};
 function applyPal(id,map=PALS){
   if(!map[id])id=Object.keys(map)[0];
   shownPal=id;shownMap=map;
@@ -1133,12 +1077,12 @@ let dosAll=rc('kj-dos')=='1';
 const applyDos=()=>document.body.classList.toggle('dos',dosAll);
 function setDos(v){
   sfx('win');                       // beeps if DOS is on at this moment, recording otherwise
-  dosAll=v;ck('kj-dos',v?'1':'0');applyDos();acctSave();
+  dosAll=v;ck('kj-dos',v?'1':'0');applyDos();
 }
 // Escape leaves DOS quickly (an open dialog gets its own Escape first)
 document.addEventListener('keydown',e=>{
   if(e.key!='Escape'||!dosAll)return;
-  if(!$('th').classList.contains('hide')||!$('acct').classList.contains('hide')||!$('egg').classList.contains('hide')||!$('sty').classList.contains('hide'))return;
+  if(!$('th').classList.contains('hide')||!$('egg').classList.contains('hide')||!$('sty').classList.contains('hide'))return;
   setDos(false);
 },true);
 function bgSecret({ef,kind,cs,vw,vh,EW,EH,n,spots}){
@@ -1160,7 +1104,7 @@ function bgSecret({ef,kind,cs,vw,vh,EW,EH,n,spots}){
   b.style.transform=`translate(${best.gx*cs}px,${best.gy*cs}px)`;
   b.onclick=()=>{
     if(dosAll){setDos(false);return}
-    dosAll=true;ck('kj-dos','1');applyDos();sfx('win');acctSave();
+    dosAll=true;ck('kj-dos','1');applyDos();sfx('win');
   };
   ef.insertBefore(b,ef.children[1]||null);
 }
@@ -1402,7 +1346,7 @@ function render(){
   const a=anim;anim=null;if(a&&!reduce&&cells[a.to])playAnim(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('p'+p);d.className='pl'+(turn==p&&!over?' on':'');d.style.borderColor=turn==p&&!over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}${who(p)}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':botLevel?' (bot)':''}</b>On board ${mine(p).length}<br>${over?'&nbsp;':turn==p?(me(p)?'Your turn':'Turn'):'&nbsp;'}`;
     // reserve balls: sit on each player's home side of the board
     const r=$('r'+p);r.innerHTML='';
     r.setAttribute('aria-label',NAME[p]+' reserve: '+R[p]);r.title=NAME[p]+' reserve: '+R[p];
@@ -1413,7 +1357,6 @@ function render(){
   const host=role=='both'||isHost;
   $('reset').classList.toggle('hide',!host);$('reset').disabled=inRoom&&!live;ctl('k');
   if(!over)dismissed=false;
-  if(over)recordEnd('kij',winner(),seq,botLevel);else recordReset('kij',seq);
   const showWin=over&&!dismissed;$('win').classList.toggle('hide',!showWin);
   if(showWin){
     const w=winner();
@@ -1434,7 +1377,7 @@ function render(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
+    $('stat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('stat').textContent=botLevel?'Local game vs bot ('+botLevel+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -1451,7 +1394,7 @@ function fail(msg){
 }
 function connect(){
   const s=ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
-  s.onopen=()=>{if(s===ws)send({t:creating?'create':'join',code,game:curGame,token})};
+  s.onopen=()=>{if(s===ws)send({t:creating?'create':'join',code,game:curGame})};
   s.onmessage=e=>{
     if(s!==ws)return;
     let m;try{m=JSON.parse(e.data)}catch(x){return}
@@ -1466,7 +1409,6 @@ function connect(){
     }else if(m.t=='state')({elder:edApply,cotw:cwApply}[curGame]||apply)(m.state,m.force);
     else if(m.t=='peers'){peers=m.peers;({elder:edRender,cotw:cwRender}[curGame]||render)()}
     else if(m.t=='style')applyStyle(m.style);
-    else if(m.t=='elo')gotElo(m);
     else if(m.t=='host'){
       isHost=!!m.you;
       toast(m.you?'The host left. You are the host now: Style and New game are yours.':'The host left. A new host has taken over.');
@@ -1844,12 +1786,11 @@ function edRender(){
   const a=edAnim;edAnim=null;if(a&&a.length&&!reduce)edPlay(cells,a);
   ['Y','G'].forEach(p=>{
     const d=$('ep'+p);d.className='pl'+(ED.turn==p&&!ED.over?' on':'');d.style.borderColor=ED.turn==p&&!ED.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}${who(p)}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':edBot?' (bot)':''}</b>${p=='Y'?'Elder goes down':'Elder goes up'}<br>${ED.over?'&nbsp;':ED.turn==p?'Moves left: '+ED.left:'&nbsp;'}`;
   });
   const host=role=='both'||isHost;
   $('ereset').classList.toggle('hide',!host);$('ereset').disabled=inRoom&&!live;ctl('e');
   if(!ED.over)edDismissed=false;
-  if(ED.over)recordEnd('elder',ED.win,ED.seq,edBot);else recordReset('elder',ED.seq);
   const sw=ED.over&&!edDismissed;$('ewin').classList.toggle('hide',!sw);
   if(sw){
     $('ewt').innerHTML=ED.win?`<i class="dot" style="background:${COL[ED.win]}"></i>${me(ED.win)?'You win!':edBot?'The bot wins!':NAME[ED.win]+' wins!'}`:"It's a draw!";
@@ -1870,7 +1811,7 @@ function edRender(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
+    $('estat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('estat').textContent=edBot?'Local game vs bot ('+edBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -2279,13 +2220,12 @@ function cwRender(){
   ['Y','G'].forEach(p=>{
     const d=$('cp'+p),n=CW.B.filter((x,i)=>x===p&&CW.K[i]==1).length,st=CW.B.filter((x,i)=>x===p&&CW.K[i]==1&&CW.S[i]).length;
     d.className='pl'+(CW.turn==p&&!CW.over?' on':'');d.style.borderColor=CW.turn==p&&!CW.over?COL[p]:'';
-    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}${who(p)}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
+    d.innerHTML=`<b><i class="dot" style="background:${COL[p]}"></i>${NAME[p]}${me(p)?' (you)':cwBot?' (bot)':''}</b>Messengers ${n}${st?' ('+st+' stunned)':''}<br>${CW.over?'&nbsp;':CW.turn==p?stage:'&nbsp;'}`;
   });
   const host=role=='both'||isHost;
   $('creset').classList.toggle('hide',!host);$('creset').disabled=inRoom&&!live;ctl('c');
   $('cdone').classList.toggle('hide',!(cwCan()&&CW.ph=='c'));
   if(!CW.over)cwDismissed=false;
-  if(CW.over)recordEnd('cotw',CW.win,CW.seq,cwBot);else recordReset('cotw',CW.seq);
   const sw=CW.over&&!cwDismissed;$('cwin').classList.toggle('hide',!sw);
   if(sw){
     $('cwt').innerHTML=CW.win?`<i class="dot" style="background:${COL[CW.win]}"></i>${me(CW.win)?'You win!':cwBot?'The bot wins!':NAME[CW.win]+' wins!'}`:"It's a draw!";
@@ -2310,7 +2250,7 @@ function cwRender(){
   if(inRoom){
     const you=role=='S'?'watching':'you are '+NAME[role]+(role=='both'||isHost?' (host)':'');
     const op=role=='S'?'':(peers[opp(role)]?'opponent connected':'waiting for opponent');
-    $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:'')+rankTag():' · reconnecting...');
+    $('cstat').textContent='Room '+code+(live?' · '+you+(op?' · '+op:''):' · reconnecting...');
   }else $('cstat').textContent=cwBot?'Local game vs bot ('+cwBot+')':'Local game on this device';
   const n=peers.S||0;
   $('spec').classList.toggle('hide',!(inRoom&&live&&n>0));$('spec').textContent='Spectators: '+n;
@@ -2488,140 +2428,8 @@ document.querySelectorAll('.inv').forEach(b=>b.onclick=()=>{
   else prompt('Copy this invite link:',url);
 });
 
-// ================= Accounts: sign in to keep your look and win/loss records =================
-let acct=null,token='',acctT=0,acctApplying=false;
-try{token=localStorage.getItem('kj-token')||''}catch(e){}
-const GNAME={kij:'Kijutsu',elder:'Elder Dance',cotw:'Thronder'};
-function apiCall(path,body){
-  return fetch(path,{method:body?'POST':'GET',headers:Object.assign({'content-type':'application/json'},token?{authorization:'Bearer '+token}:{}),body:body?JSON.stringify(body):undefined})
-    .catch(()=>{throw new Error('Cannot reach the server.')})
-    .then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.err||'Something went wrong.'),{status:r.status});return j});
-}
-const settingsNow=()=>({mode,pal:themePal,pc:themePc,sh:themeSh,epal:themeEPal,epc:themeEPc,esh:themeESh,cpal:themeCPal,cpc:themeCPc,csh:themeCSh,dos:dosAll});
-function acctSave(){
-  if(!token||!acct||acctApplying)return;
-  clearTimeout(acctT);acctT=setTimeout(()=>{apiCall('/api/save',{settings:settingsNow()}).catch(()=>{})},800);
-}
-function applySettings(x){
-  if(!x||typeof x!='object')return;
-  acctApplying=true;
-  if(['auto','light','dark'].includes(x.mode))mode=x.mode;
-  if(PALS[x.pal])themePal=curPal=pick=x.pal;
-  if(PCS[x.pc]){themePc=pickPc=x.pc;applyPc(x.pc)}
-  if(SHAPES[x.sh]){themeSh=pickSh=curSh=x.sh}
-  if(EPALS[x.epal])themeEPal=x.epal;
-  if(EPCS[x.epc])themeEPc=x.epc;
-  if(EDSH[x.esh])themeESh=x.esh;
-  if(CPALS[x.cpal])themeCPal=x.cpal;
-  if(CPCS[x.cpc])themeCPc=x.cpc;
-  if(CWSH[x.csh])themeCSh=x.csh;
-  if(typeof x.dos=='boolean'){dosAll=x.dos;ck('kj-dos',x.dos?'1':'0');applyDos()}
-  applyPal(themePal);setMode(mode,true);saveTheme();
-  acctApplying=false;
-  refreshHubIcons();
-}
-function acctUI(){
-  const b=$('hubacct');
-  b.textContent=acct?acct.name:'Sign in';b.classList.toggle('in',!!acct);
-  $('hubsub').textContent=acct?'Welcome back, '+acct.name:'Pick a game';
-  Object.keys(GNAME).forEach(g=>{
-    const e=$('rec-'+g),t=acct&&acct.stats&&acct.stats[g];
-    const el=acct&&acct.elo&&acct.elo[g];
-    e.innerHTML=acct&&el?`Elo <b>${el.r}</b>`+(t&&(t.w+t.l+t.d)?` · <b>${t.w}</b> won · <b>${t.l}</b> lost`+(t.d?` · <b>${t.d}</b> drawn`:'')+(t.streak>1?` · streak <b>${t.streak}</b>`:''):' · unplayed'):'';
-  });
-  const tb=document.querySelector('#astats tbody');
-  if(tb){tb.innerHTML='';Object.keys(GNAME).forEach(g=>{
-    const t=(acct&&acct.stats&&acct.stats[g])||{w:0,l:0,d:0,streak:0,best:0},tr=document.createElement('tr');
-    const el=(acct&&acct.elo&&acct.elo[g])||{r:100,peak:100};
-    [GNAME[g],el.r+(el.peak>el.r?' ('+el.peak+')':''),t.w,t.l,t.d,t.streak].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
-    tb.appendChild(tr);
-  })}
-}
-function gotUser(r,isNew){
-  token=r.token||token;try{localStorage.setItem('kj-token',token)}catch(e){}
-  acct=r.user;
-  if(!isNew&&acct.settings&&Object.keys(acct.settings).length)applySettings(acct.settings);
-  else acctSave();
-  acctUI();
-}
-function signOut(){
-  token='';acct=null;try{localStorage.removeItem('kj-token')}catch(e){}
-  acctUI();
-}
-// Online ranked results are decided by the server (it sends an "elo" message to both players).
-// Bot games are reported here. Local two-player games and spectating are never rated.
-const recorded={},lastElo={},firstSeq={},endMoves={};
-// moves in a game = move counter now minus the counter when this game began (the counter keeps running across New game)
-function recordReset(game,sq){recorded[game]=null;lastElo[game]=null;endMoves[game]=null;showElo(game);if(firstSeq[game]==null)firstSeq[game]=sq}
-function recordEnd(game,w,sq,bot){
-  showElo(game);
-  if(endMoves[game]==null){endMoves[game]=Math.max(0,sq-(firstSeq[game]||0));firstSeq[game]=null}
-  if(!acct||inRoom||role=='S'||!bot)return;
-  const key=game+'|bot|'+sq+'|'+(w||'-');
-  if(recorded[game]===key)return;recorded[game]=key;
-  const result=w?(w=='Y'?'win':'loss'):'draw';
-  apiCall('/api/result',{game,result,level:bot,moves:endMoves[game]}).then(r=>gotElo(r)).catch(()=>{});
-}
-function gotElo(m){
-  if(!acct)return;
-  if(m.stats)acct.stats=m.stats;if(m.elo)acct.elo=m.elo;
-  lastElo[m.game]=m;acctUI();showElo(m.game);
-  toast('Elo '+(m.delta>=0?'+':'')+m.delta+' → '+m.rating+' vs '+m.opp.name+' ('+m.opp.rating+')');
-}
-const ELOEL={kij:'welo',elder:'ewelo',cotw:'cwelo'};
-function showElo(game){
-  const e=$(ELOEL[game]),m=lastElo[game];if(!e)return;
-  if(!m){e.innerHTML='';return}
-  const long=m.mult>=1.5?' · long match bonus':m.mult<=.5?' · short match':'';
-  e.innerHTML=`Elo <b class="${m.delta>=0?'up':'dn'}">${m.delta>=0?'+':''}${m.delta}</b> → ${m.rating} <span>(vs ${m.opp.name.replace(/[<>&]/g,'')} ${m.opp.rating}${long})</span>`;
-}
-// name + Elo of the account in a seat, shown on the player cards in ranked rooms
-const who=p=>{
-  const n=inRoom&&peers.names&&peers.names[p];
-  return n?` <span class="rt">${n.replace(/[<>&]/g,'')} · ${peers.elo[p]}</span>`:'';
-};
-const rankTag=()=>inRoom&&role!='S'&&peers.Y&&peers.G?(peers.ranked?' · ranked':' · unranked (both players need an account)'):'';
-function openAcct(){
-  $('aout').classList.toggle('hide',!!acct);$('ain').classList.toggle('hide',!acct);
-  if(acct){$('aname2').textContent=acct.name;acctUI()}
-  else setTab('in');
-  $('aerr').textContent='';$('adelerr').textContent='';
-  $('acct').classList.remove('hide');
-  (acct?$('adone'):$('aname')).focus();
-}
-const closeAcct=()=>$('acct').classList.add('hide');
-let atab='in';
-function setTab(t){
-  atab=t;
-  document.querySelectorAll('#atabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t==t));
-  $('asubmit').textContent=t=='in'?'Sign in':'Create account';
-  $('apass').autocomplete=t=='in'?'current-password':'new-password';
-  $('ahint').textContent=t=='up'?'Name: 3 to 16 letters, digits or underscores. Password: 6 or more characters. Your current look is saved to the new account.':'';
-  $('aerr').textContent='';
-}
-document.querySelectorAll('#atabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
-$('aform').onsubmit=e=>{
-  e.preventDefault();
-  const name=$('aname').value.trim(),pass=$('apass').value,err=$('aerr'),btn=$('asubmit');
-  if(!name||!pass){err.textContent='Enter a name and a password.';return}
-  err.textContent='Working...';btn.disabled=true;
-  apiCall(atab=='in'?'/api/login':'/api/register',{name,pass,settings:settingsNow()})
-    .then(r=>{$('apass').value='';gotUser(r,atab=='up');openAcct();sfx('win')})
-    .catch(x=>{err.textContent=x.message})
-    .finally(()=>{btn.disabled=false});
-};
-$('hubacct').onclick=openAcct;
-$('aclose').onclick=$('adone').onclick=closeAcct;
-$('aout2').onclick=()=>{signOut();openAcct()};
-$('adelgo').onclick=()=>{
-  apiCall('/api/delete',{pass:$('adelpw').value}).then(()=>{$('adelpw').value='';signOut();openAcct()}).catch(x=>{$('adelerr').textContent=x.message});
-};
-document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('acct').classList.contains('hide'))closeAcct()});
-// restore the session on load
-if(token)apiCall('/api/me').then(r=>{acct=r.user;if(acct.settings&&Object.keys(acct.settings).length)applySettings(acct.settings);acctUI()}).catch(x=>{if(x.status==401){token='';try{localStorage.removeItem('kj-token')}catch(e){}}});
-
 refreshHubIcons();
-applyDos('');acctUI();
+applyDos('');
 
 // invite links: ?r=code&g=kij|elder|cotw joins that room straight away
 (()=>{
