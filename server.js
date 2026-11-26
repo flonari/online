@@ -19,13 +19,32 @@ const FILES = {
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'users.json');
 let db = { secret: crypto.randomBytes(32).toString('hex'), users: {}, avg: {} };
-try { fs.mkdirSync(DATA_DIR, { recursive: true }); db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); } catch {}
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.error('[accounts] cannot create ' + DATA_DIR + ': ' + e.message); }
+if (fs.existsSync(DB_FILE)) {
+  try { db = Object.assign(db, JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); console.log('[accounts] loaded ' + Object.keys(db.users).length + ' account(s) from ' + DB_FILE); }
+  catch (e) {
+    // never start empty and overwrite a file we merely failed to read: keep a copy and stop
+    const bad = DB_FILE + '.unreadable-' + Date.now();
+    try { fs.copyFileSync(DB_FILE, bad); } catch {}
+    console.error('[accounts] ' + DB_FILE + ' could not be read (' + e.message + '). A copy was kept at ' + bad + '. Fix or restore it, then start again.');
+    process.exit(1);
+  }
+} else console.log('[accounts] no accounts file at ' + DB_FILE + ' yet, starting fresh. If you expected accounts here, the disk was reset or DATA_DIR points somewhere else.');
+// Elo moved from a 1000 start to a 100 start: convert ratings saved on the old scale once
+if (db.eloVer !== 2) {
+  for (const u of Object.values(db.users)) for (const e of Object.values(u.elo || {})) { e.r = Math.max(0, Math.round(e.r / 10)); e.peak = Math.max(e.r, Math.round((e.peak || e.r * 10) / 10)); }
+  db.eloVer = 2;
+}
 let saveT = null;
 const saveDb = () => {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
     const tmp = DB_FILE + '.tmp';
-    fs.writeFile(tmp, JSON.stringify(db), err => { if (!err) fs.rename(tmp, DB_FILE, () => {}); });
+    fs.writeFile(tmp, JSON.stringify(db), err => {
+      if (err) return console.error('[accounts] save failed: ' + err.message);
+      // keep the previous version as users.json.bak, then swap the new one in
+      fs.copyFile(DB_FILE, DB_FILE + '.bak', () => fs.rename(tmp, DB_FILE, e => { if (e) console.error('[accounts] save failed: ' + e.message); }));
+    });
   }, 300);
 };
 saveDb(); // makes sure the signing secret survives a restart
@@ -49,30 +68,31 @@ const ensure = u => {
   u.stats = u.stats || {}; u.elo = u.elo || {};
   for (const g of GAMES) {
     u.stats[g] = u.stats[g] || { w: 0, l: 0, d: 0, streak: 0, best: 0 };
-    u.elo[g] = u.elo[g] || { r: 1000, n: 0, peak: 1000 };
+    u.elo[g] = u.elo[g] || { r: BASE, n: 0, peak: BASE };
   }
   return u;
 };
 const pub = u => { ensure(u); return { name: u.display, settings: u.settings || {}, stats: u.stats, elo: u.elo }; };
 
 // ---------------------------------------------------------------------------
-// Elo, one rating per game (start 1000).
-//  - K shrinks as you play (40 for the first 10 games, then 28, then 20).
+// Elo, one rating per game (start 100).
+//  - K shrinks as you play (16 for the first 10 games, then 12, then 8).
 //  - The result is scaled by match length: moves played / the running average length of finished
 //    online games of that game, so a short game moves you little and a long one moves you a lot.
 //  - Bots have fixed ratings. Beating the hard bot pays a lot, but a real match against a strong
 //    player can pay more: real matches allow a bigger length bonus (x2.5) than bots (x1.5).
 //  - Online matches are decided by the server from the relayed game state; both players need accounts.
 // ---------------------------------------------------------------------------
-const BOT_R = { easy: 700, normal: 1100, hard: 1500 };
+const BASE = 100; // everyone starts at 100 in every game
+const BOT_R = { easy: 70, normal: 110, hard: 150 };
 const AVG0 = { kij: 36, elder: 30, cotw: 40 };
-const kFor = n => n < 10 ? 40 : n < 30 ? 28 : 20;
-const expect = (a, b) => 1 / (1 + Math.pow(10, (b - a) / 400));
+const kFor = n => n < 10 ? 16 : n < 30 ? 12 : 8;
+const expect = (a, b) => 1 / (1 + Math.pow(10, (b - a) / 40)); // the classic Elo curve, scaled to a 100 start
 const avgLen = g => (db.avg && db.avg[g]) || AVG0[g];
 const lenMult = (g, moves, cap) => Math.min(cap, Math.max(0.2, moves / avgLen(g)));
 function rate(u, g, oppR, score, mult) {
   const e = u.elo[g], d = Math.round(kFor(e.n) * mult * (score - expect(e.r, oppR)));
-  e.r = Math.max(100, e.r + d); e.n++; e.peak = Math.max(e.peak, e.r);
+  e.r = Math.max(0, e.r + d); e.n++; e.peak = Math.max(e.peak, e.r);
   return d;
 }
 function tally(u, g, result) {
